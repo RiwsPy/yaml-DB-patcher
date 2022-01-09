@@ -1,0 +1,19 @@
+{
+ "tests": {
+  "ITEM": {
+   "new_attr": "test",
+   "color": "hum!",
+   "char": "1",
+   "name": "<tests.0>"
+  },
+  "INANIMATE": {
+   "char": "",
+   "name": "<tests.0>",
+   "color": "hum!"
+  },
+  "0": "hum!",
+  "1": {
+   "char": "1"
+  }
+ }
+}

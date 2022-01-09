@@ -1,0 +1,17 @@
+$ITEM:
+  new_attr: test
+  color: [127, 0, 127]
+  <:
+    $INANIMATE
+    $1
+
+$INANIMATE:
+  char: ''
+  name: <$0>
+  color:
+    <: $0
+
+$0: hum!
+
+$1:
+  char: '1'
