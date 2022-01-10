@@ -11,8 +11,8 @@ class YamlReader:
     inc_string = '£'
     absolute_string = '$'
 
-    def __init__(self, path=''):
-        self.data = Data_dict(is_first=True)
+    def __init__(self, path='', is_first=False):
+        self.is_first = is_first
         self._dirname = os.path.join(BASE_DIR, os.path.dirname(path))
         self._basename = os.path.basename(path)
 
@@ -21,23 +21,23 @@ class YamlReader:
             raise FileNotFoundError
 
     @property
+    def data(self) -> Data_dict:
+        file_content = self.read()
+        file_content = self.convert_inc_string(file_content)
+        file_content = self.convert_path_to_absolute(file_content)
+
+        ret = Data_dict(is_first=self.is_first, **safe_load(file_content))
+        ret.key_disaggregation()
+        ret.extends()
+        return ret
+
+    @property
     def abspath(self) -> str:
         return os.path.join(self._dirname, self._basename)
 
     @property
     def patchpath(self) -> str:
         return os.path.basename(os.path.abspath(self._dirname))
-
-    def read_sub_save(self) -> None:
-        file_content = self.read()
-        file_content = self.convert_inc_string(file_content)
-        file_content = self.convert_path_to_absolute(file_content)
-
-        data = Data_dict(is_first=True, **safe_load(file_content))
-        del data['is_first']
-        data.key_disaggregation()
-        data.expend_value()
-        self.data = data
 
     def read(self) -> str:
         read_file = ''
@@ -81,4 +81,3 @@ def convert_inc_string(file_content: str, string_split: str) -> str:
     for nb, txt in enumerate(splited_str[:-1]):
         ret += txt + str(nb).zfill(8)
     return ret + splited_str[-1]
-

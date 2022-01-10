@@ -6,9 +6,12 @@ class Data_dict(dict):
 
     def __new__(cls, *args, is_first=False, **kwargs):
         obj_id = super().__new__(cls, *args, **kwargs)
-        if is_first:
+        if is_first or cls._first_instance is None:
             cls._first_instance = obj_id
         return obj_id
+
+    def __init__(self, *args, is_first=False, **kwargs):
+        super().__init__(*args, **kwargs)
 
     def __getitem__(self, item: str) -> Any:
         if '.' not in item:
@@ -22,7 +25,7 @@ class Data_dict(dict):
                 return {}
         return sub_dict
 
-    def expend_value(self) -> None:
+    def extends(self) -> None:
         for k, v in self.items():
             if isinstance(v, dict):
                 if '<' in v:
@@ -45,14 +48,14 @@ class Data_dict(dict):
                                 break
                 else:
                     value_expended = self.__class__(v)
-                    value_expended.expend_value()
+                    value_expended.extends()
 
                 self[k] = value_expended
 
         for k, v in self.items():
             if isinstance(v, dict):
                 dict_convert = self.__class__(v)
-                dict_convert.expend_value()
+                dict_convert.extends()
                 self[k] = dict_convert
 
     def key_disaggregation(self, split_string: str = '.') -> None:
