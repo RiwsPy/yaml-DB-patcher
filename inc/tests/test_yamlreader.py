@@ -3,6 +3,7 @@ import pytest
 from pathlib import Path
 import os
 from ..data_dict import Data_dict
+from yaml import safe_load
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -34,28 +35,25 @@ def test_convert_inc_string():
 
 
 def test_convert_path_to_absolute():
-    cls = YamlReader(os.path.join(BASE_DIR, 'db_test.yaml'))
+    cls = YamlReader(os.path.join(BASE_DIR, 'db_test.yaml'), is_first=True)
     assert cls.convert_path_to_absolute(cls.absolute_string) == os.path.basename(os.path.dirname(__file__)) + '.'
 
-    cls.read_sub_save()
     assert cls.data['tests'].get('0') == 'hum!'
 
 
 def test_key_disaggregation():
-    cls = YamlReader(os.path.join(BASE_DIR, 'db_test.yaml'))
-    cls.data = Data_dict(**{'cre.PLAYER': {'name': 'player_name', 'con': 1}})
-    cls.data.key_disaggregation()
-    assert cls.data == {'cre': {'PLAYER': {'name': 'player_name', 'con': 1}}}
+    data = Data_dict(**{'cre.PLAYER': {'name': 'player_name', 'con': 1}})
+    data.key_disaggregation()
+    assert data == {'cre': {'PLAYER': {'name': 'player_name', 'con': 1}}}
 
 
-def test_expend_value():
-    cls = YamlReader(os.path.join(BASE_DIR, 'db_test.yaml'))
-    cls.read_sub_save()
-    cls.data.expend_value()
-    assert cls.data['tests.INANIMATE.color'] == cls.data['tests.0']
+def test_extends():
+    cls = YamlReader(os.path.join(BASE_DIR, 'db_test.yaml'), is_first=True)
+    data = cls.data
+    assert data['tests.INANIMATE.color'] == data['tests.0']
 
-    assert cls.data['tests.ITEM.new_attr'] == 'test'
-    assert cls.data['tests.ITEM.color'] == 'hum!'
+    assert data['tests.ITEM.new_attr'] == 'test'
+    assert data['tests.ITEM.color'] == 'hum!'
 
     # mult-herit
-    assert cls.data['tests.ITEM.char'] == '1'
+    assert data['tests.ITEM.char'] == '1'
