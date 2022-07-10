@@ -50,6 +50,10 @@ def test_key_disaggregation():
     data.key_disaggregation()
     assert data == {"cre": {"PLAYER": {"name": "player_name", "con": 1}}}
 
+    data = Data_dict(**{"test": {"name.first": "firstname", "name.nickname": "nickname"}})
+    data.key_disaggregation()
+    assert data == {"test": {"name": {"first": "firstname", "nickname": "nickname"}}}
+
 
 def test_extends():
     cls = YamlReader(os.path.join(BASE_DIR, "db_test.yaml"), is_first=True)

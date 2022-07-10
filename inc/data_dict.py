@@ -74,12 +74,15 @@ class Data_dict(dict):
         for k, v in self.items():
             sub_dict = structured_dict
             splited_keys = k.split(split_string)
-            for index, splited_key in enumerate(splited_keys):
-                if index >= len(splited_keys) - 1:
-                    sub_dict[splited_key] = v
-                else:
-                    if splited_key not in sub_dict:
-                        sub_dict[splited_key] = {}
-                    sub_dict = sub_dict[splited_key]
+            for splited_key in splited_keys[:-1]:
+                if splited_key not in sub_dict:
+                    sub_dict[splited_key] = {}
+                sub_dict = sub_dict[splited_key]
+
+            if isinstance(v, dict):
+                v = self.__class__(v)
+                v.key_disaggregation()
+            sub_dict[splited_keys[-1]] = v # dernier élément
+
         self.clear()
         self.update(structured_dict)
