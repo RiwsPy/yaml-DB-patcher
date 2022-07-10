@@ -10,15 +10,17 @@ class Data_dict(dict):
             cls._first_instance = obj_id
         return obj_id
 
+    # captation de l'attribut is_first
     def __init__(self, *args, is_first=False, **kwargs):
         super().__init__(*args, **kwargs)
 
     def __getitem__(self, item: str) -> Any:
-        if '.' not in item:
+        # suit les chemins x.y comme s'il s'agissait de {"x": {"y": object}}
+        if "." not in item:
             return super().__getitem__(item)
 
         sub_dict = self
-        for key in item.split('.'):
+        for key in item.split("."):
             try:
                 sub_dict = sub_dict[key]
             except KeyError:
@@ -27,30 +29,33 @@ class Data_dict(dict):
 
     def extends(self) -> None:
         for k, v in self.items():
-            if isinstance(v, dict):
-                if '<' in v:
-                    value_expended = self.__class__()
-                    for key, value in v.items():
-                        if key != '<':
-                            value_expended[key] = value
-                        else:
-                            force_break = False
-                            # héritages multiples
-                            for splited_value in value.split():
-                                value_expansion = self._first_instance[splited_value]
-                                if isinstance(value_expansion, dict):
-                                    value_expended.update(value_expansion)
-                                else:
-                                    value_expended = value_expansion
-                                    force_break = True
-                                    break
-                            if force_break:
-                                break
-                else:
-                    value_expended = self.__class__(v)
-                    value_expended.extends()
+            if not isinstance(v, dict):
+                continue
 
-                self[k] = value_expended
+            if "<" in v:
+                value_expended = self.__class__()
+                for key, value in v.items():
+                    if key != "<":
+                        value_expended[key] = value
+                        continue
+
+                    # héritage multiple <: cls1 cls2 cls3
+                    force_break = False
+                    for entity in value.split(" "):
+                        value_expansion = self._first_instance[entity]
+                        if isinstance(value_expansion, dict):
+                            value_expended.update(value_expansion)
+                        else:
+                            value_expended = value_expansion
+                            force_break = True
+                            break
+                    if force_break:
+                        break
+            else:
+                value_expended = self.__class__(v)
+                value_expended.extends()
+
+            self[k] = value_expended
 
         for k, v in self.items():
             if isinstance(v, dict):
@@ -58,19 +63,19 @@ class Data_dict(dict):
                 dict_convert.extends()
                 self[k] = dict_convert
 
-    def key_disaggregation(self, split_string: str = '.') -> None:
+    def key_disaggregation(self, split_string: str = ".") -> None:
         """
-            >self.data = {'cre.PLAYER': {'name': 'player_name', 'con': 1}}
-            >self.key_disaggregation()
-            >self.data
-            {'cre': {'PLAYER': {'name': 'player_name', 'con': 1}}}
+        >self.data = {'cre.PLAYER': {'name': 'player_name', 'con': 1}}
+        >self.key_disaggregation()
+        >self.data
+        {'cre': {'PLAYER': {'name': 'player_name', 'con': 1}}}
         """
         structured_dict = self.__class__()
         for k, v in self.items():
             sub_dict = structured_dict
             splited_keys = k.split(split_string)
             for index, splited_key in enumerate(splited_keys):
-                if index >= len(splited_keys)-1:
+                if index >= len(splited_keys) - 1:
                     sub_dict[splited_key] = v
                 else:
                     if splited_key not in sub_dict:
