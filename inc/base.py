@@ -29,6 +29,8 @@ class YamlReader:
         ret = Data_dict(is_first=self.is_first, **safe_load(file_content))
         ret.key_disaggregation()
         ret.extends()
+        ret.fix_me()
+        ret.resolve_links()
         return ret
 
     @property
