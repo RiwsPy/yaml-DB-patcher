@@ -25,7 +25,6 @@ operator_to_method = {
     "**": "__pow__",
 }
 
-
 class Data_dict(dict):
     _first_instance = None
     regex_links_in_str = re.compile(r"(<< *([\w\. ]+) *>>)")
