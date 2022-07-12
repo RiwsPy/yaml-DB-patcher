@@ -1,0 +1,724 @@
+{
+ "_base": {
+  "0": "Nunuche",
+  "INANIMATE": {
+   "char": "",
+   "name": "<_base.0>",
+   "level": 1,
+   "blocks": 1,
+   "dex": 0,
+   "con": 12,
+   "phy": 10,
+   "reaction": 0,
+   "color": {},
+   "visual_range": 0,
+   "opaque": 0,
+   "gender": 1,
+   "resistances": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "description": "<_base.0>"
+  },
+  "CRE": {
+   "char": "C"
+  },
+  "ORC": {
+   "char": "C",
+   "name": "<_base.100>",
+   "str": 9,
+   "dex": 11,
+   "con": 13,
+   "per": 9,
+   "phy": 8,
+   "psy": 7,
+   "emo": 6
+  },
+  "DOOR_NW": {
+   "char": "",
+   "name": "<_base.101>",
+   "level": 1,
+   "blocks": 1,
+   "dex": 0,
+   "con": 12,
+   "phy": 10,
+   "reaction": 0,
+   "color": {},
+   "visual_range": 0,
+   "opaque": 1,
+   "gender": 2,
+   "resistances": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "description": "<_base.0>",
+   "door": {
+    "open_vector": [
+     -1,
+     -1,
+     0
+    ],
+    "state": "close"
+   },
+   "script": "_base.script.cre.DOOR",
+   "dialog": "_base.script.dialog.door001",
+   "b_color": {}
+  },
+  "DOOR_SW": {
+   "char": "",
+   "name": "<_base.101>",
+   "level": 1,
+   "blocks": 1,
+   "dex": 0,
+   "con": 12,
+   "phy": 10,
+   "reaction": 0,
+   "color": {},
+   "visual_range": 0,
+   "opaque": 1,
+   "gender": 2,
+   "resistances": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "description": "<_base.0>",
+   "door": {
+    "open_vector": [
+     -1,
+     1,
+     0
+    ],
+    "state": "close"
+   },
+   "script": "_base.script.cre.DOOR",
+   "dialog": "_base.script.dialog.door001",
+   "b_color": {}
+  },
+  "DOOR_NE": {
+   "char": "",
+   "name": "<_base.101>",
+   "level": 1,
+   "blocks": 1,
+   "dex": 0,
+   "con": 12,
+   "phy": 10,
+   "reaction": 0,
+   "color": {},
+   "visual_range": 0,
+   "opaque": 1,
+   "gender": 2,
+   "resistances": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "description": "<_base.0>",
+   "door": {
+    "open_vector": [
+     1,
+     -1,
+     0
+    ],
+    "state": "close"
+   },
+   "script": "_base.script.cre.DOOR",
+   "dialog": "_base.script.dialog.door001",
+   "b_color": {}
+  },
+  "DOOR_SE": {
+   "char": "",
+   "name": "<_base.101>",
+   "level": 1,
+   "blocks": 1,
+   "dex": 0,
+   "con": 12,
+   "phy": 10,
+   "reaction": 0,
+   "color": {},
+   "visual_range": 0,
+   "opaque": 1,
+   "gender": 2,
+   "resistances": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "description": "<_base.0>",
+   "door": {
+    "open_vector": [
+     1,
+     1,
+     0
+    ],
+    "state": "close"
+   },
+   "script": "_base.script.cre.DOOR",
+   "dialog": "_base.script.dialog.door001",
+   "b_color": {}
+  },
+  "STAIR_D": {
+   "char": 275,
+   "name": "<_base.105>",
+   "level": 1,
+   "blocks": 0,
+   "dex": 0,
+   "con": 12,
+   "phy": 10,
+   "reaction": 0,
+   "color": "<_color.WHITE>",
+   "visual_range": 0,
+   "opaque": 1,
+   "gender": 1,
+   "resistances": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "description": "<_base.0>",
+   "is_stair": -1
+  },
+  "STAIR_U": {
+   "char": 277,
+   "name": "<_base.105>",
+   "level": 1,
+   "blocks": 0,
+   "dex": 0,
+   "con": 12,
+   "phy": 10,
+   "reaction": 0,
+   "color": "<_color.WHITE>",
+   "visual_range": 0,
+   "opaque": 1,
+   "gender": 1,
+   "resistances": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "description": "<_base.0>",
+   "is_stair": 1
+  },
+  "CHEST": {
+   "char": 279,
+   "name": "<_base.106>",
+   "level": 1,
+   "blocks": 1,
+   "dex": 0,
+   "con": 12,
+   "phy": 10,
+   "reaction": 0,
+   "color": "<_color.WHITE>",
+   "visual_range": 0,
+   "opaque": 0,
+   "gender": 1,
+   "resistances": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "description": "<_base.0>",
+   "dialog": "_base.script.dialog.door001",
+   "is_container": true,
+   "door_state": "close"
+  },
+  "TRAP": {
+   "char": "!",
+   "name": "<_base.111>",
+   "level": 1,
+   "blocks": 0,
+   "dex": 0,
+   "con": 12,
+   "phy": 10,
+   "reaction": 0,
+   "color": {},
+   "visual_range": 0,
+   "opaque": 0,
+   "gender": 1,
+   "resistances": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "description": "<_base.0>",
+   "is_active": true,
+   "dm_trap": 0
+  },
+  "LOCK": {
+   "char": "",
+   "name": "<_base.0>",
+   "level": 1,
+   "blocks": 0,
+   "dex": 0,
+   "con": 12,
+   "phy": 10,
+   "reaction": 0,
+   "color": {},
+   "visual_range": 0,
+   "opaque": 0,
+   "gender": 1,
+   "resistances": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "description": "<_base.0>",
+   "lock": {
+    "state": "close",
+    "difficulty": 0
+   }
+  },
+  "WALL": {
+   "char": "",
+   "name": "<_base.110>",
+   "level": 1,
+   "blocks": 1,
+   "dex": 0,
+   "con": 12,
+   "phy": 10,
+   "reaction": 0,
+   "color": {},
+   "visual_range": 0,
+   "opaque": 1,
+   "gender": 1,
+   "resistances": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "description": "<_base.0>",
+   "is_wall": true,
+   "b_color": "<_color.WALL>"
+  },
+  "ORC001": {
+   "char": "o",
+   "name": "<_base.100>",
+   "str": 9,
+   "dex": 11,
+   "con": 13,
+   "per": 9,
+   "phy": 8,
+   "psy": 7,
+   "emo": 6,
+   "reaction": 3840,
+   "script": "_base.script.cre.ORC001"
+  },
+  "CHEST001": {
+   "char": 279,
+   "name": "<_base.106>",
+   "level": 1,
+   "blocks": 1,
+   "dex": 0,
+   "con": 12,
+   "phy": 10,
+   "reaction": 0,
+   "color": "<_color.WHITE>",
+   "visual_range": 0,
+   "opaque": 0,
+   "gender": 1,
+   "resistances": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "description": "<_base.0>",
+   "dialog": "_base.script.dialog.door001",
+   "is_container": true,
+   "door_state": "close",
+   "slot": {
+    "bag": [
+     "_base.POTN001",
+     "_base.POTN001"
+    ],
+    "locks": [
+     "_base.LOCK002"
+    ]
+   }
+  },
+  "PNJ001": {
+   "char": "@",
+   "name": "<_base.104>",
+   "dialog": "_base.script.dialog.dialog002"
+  },
+  "DOOR_TRAP001": {
+   "char": 264,
+   "name": "<_base.103>",
+   "level": 1,
+   "blocks": 0,
+   "dex": 0,
+   "con": 12,
+   "phy": 10,
+   "reaction": 0,
+   "color": "<_color.TRAP>",
+   "visual_range": 0,
+   "opaque": 0,
+   "gender": 1,
+   "resistances": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "description": "<_base.0>",
+   "is_active": true,
+   "dm_trap": 0,
+   "script": "_base.script.cre.TRAP_DOOR"
+  },
+  "TRAP001": {
+   "char": "!",
+   "name": "<_base.102>",
+   "level": 1,
+   "blocks": 0,
+   "dex": 0,
+   "con": 12,
+   "phy": 10,
+   "reaction": 0,
+   "color": {},
+   "visual_range": 0,
+   "opaque": 0,
+   "gender": 1,
+   "resistances": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "description": "<_base.0>",
+   "is_active": true,
+   "dm_trap": 0,
+   "script": "_base.script.cre.TRAP_GROUND"
+  },
+  "LOCK001": {
+   "char": "",
+   "name": "<_base.0>",
+   "level": 1,
+   "blocks": 0,
+   "dex": 0,
+   "con": 12,
+   "phy": 10,
+   "reaction": 0,
+   "color": {},
+   "visual_range": 0,
+   "opaque": 0,
+   "gender": 1,
+   "resistances": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "description": "<_base.0>",
+   "lock": {
+    "difficulty": 30,
+    "state": "close"
+   }
+  },
+  "LOCK002": {
+   "char": "",
+   "name": "<_base.0>",
+   "level": 1,
+   "blocks": 0,
+   "dex": 0,
+   "con": 12,
+   "phy": 10,
+   "reaction": 0,
+   "color": {},
+   "visual_range": 0,
+   "opaque": 0,
+   "gender": 1,
+   "resistances": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "description": "<_base.0>",
+   "lock": {
+    "state": "open",
+    "difficulty": 45
+   }
+  },
+  "DOOR_NW001": {
+   "char": "",
+   "name": "<_base.101>",
+   "level": 1,
+   "blocks": 1,
+   "dex": 0,
+   "con": 12,
+   "phy": 10,
+   "reaction": 0,
+   "color": {},
+   "visual_range": 0,
+   "opaque": 1,
+   "gender": 2,
+   "resistances": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "description": "<_base.0>",
+   "door": {
+    "open_vector": [
+     -1,
+     -1,
+     0
+    ],
+    "state": "close"
+   },
+   "script": "_base.script.cre.DOOR",
+   "dialog": "_base.script.dialog.door001",
+   "b_color": {},
+   "slot": {
+    "locks": [
+     "_base.LOCK001"
+    ],
+    "trap": [
+     "_base.DOOR_TRAP001"
+    ]
+   }
+  },
+  "CRE_test": {
+   "char": "P",
+   "name": "test02 de <c.name>",
+   "reaction": 416
+  },
+  "Ii": "Nunuche Youplaboum Humshtakamacha",
+  "olo": "Youplaboum Humshtakamacha",
+  "ikimaste": "Humshtakamacha"
+ },
+ "~PLAYER": {
+  "char": "C",
+  "name": "Nunuche Youplaboum Humshtakamacha",
+  "gender": 0,
+  "reaction": 240,
+  "color": "<_color.WHITE>",
+  "script": "_base.script.cre.PLAYER",
+  "slot": {
+   "bag": [
+    "_base.POTN001",
+    "_base.KEY001",
+    "_base.SCRL001",
+    "_base.ARMOR001",
+    "_base.SCRL001"
+   ],
+   "bag2": [
+    "_base.POTN001"
+   ]
+  },
+  "fix00000002=": {
+   "is_container": true
+  },
+  "level": 1,
+  "test": 1,
+  "is_container": true
+ },
+ "map": {
+  "0_0_0": {
+   "structure": "....................................................................................................\n............................................................\n............................................................\n............................................................\n............................................................\n............................................................\n............................................................\n............................................................\n............................................................\n............................................................\n............................................................\n................WWWW........................................\n................W..W........................................\n................W..W........................................\n................W..WWWWWWWWW................................\n................D..W...WW..................................WWWWWWW\n.......WWWWWWWWWW..W.W.WW..................................W.....W\n.......W.......WWWWW.W.WWW.................................D.....W\n.......W.............W.....................................W.....W\n.......W....W..WWWWWWWWWWW.................................W..W..W\n....WWWWWW.....W.........W.................................W.....W\n....W....W.....W.........W.................................W.....W\n....W....W..W..W.........W......a..........................W.WWWWW\n....W..........W........SW\n....W....W.....W..C......W\n....W....W..W..W.........W\n....W....W.....W........wW.......M\n....WWWWWW.WWWWW.........D.W.W..\n........W......W.........WWW.W..\n........W......W.....P.......W..\n........W......W.........WWW.W..\n........WWWWWW.WWWWWdWWWWWWW.W..\n........................WWWW.WO.\n........WW.WWWWWWWWWWWWWWW......\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n",
+   "liaison": {
+    "W": "_base.WALL",
+    "D": "_base.DOOR_NW001",
+    "d": "_base.DOOR_SE",
+    "C": "_base.CHEST001",
+    "S": "_base.STAIR_D",
+    "O": "_base.ORC001",
+    "M": "_base.PNJ001",
+    "P": "~PLAYER",
+    "a": "_base.POTN001",
+    "s": "_base.SCRL001",
+    "w": "<_color.GRASS>"
+   },
+   "ground_color": "<_color.GROUND>",
+   "fix00000003[]+": {
+    "(29, 20)": [
+     "M",
+     "M",
+     "M"
+    ],
+    "(32, 21)": "_base.TRAP001",
+    "(35, 24)": "_base.ORC001",
+    "(25, 30)": "_base.CRE_test",
+    "(29, 19)": "<_color.CYAN>",
+    "(29, 18)": "<_color.GRASS>",
+    "(21, 24)": "W"
+   },
+   "fix00000004-": {
+    "(29, 19)": "<_color.CYAN>"
+   },
+   "fix00000005[]+": {
+    "(29, 21)": "<_color.TURQUOISE>"
+   },
+   "fix00000006[]+": {
+    "(29, 21)": "<_color.RESET>"
+   }
+  }
+ }
+}
