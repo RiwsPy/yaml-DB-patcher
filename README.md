@@ -25,9 +25,9 @@ cls.load("_base/")
 cls.dump(ensure_ascii=False, indent=1)
 ```
 
-###Exemples :
+### Exemples :
 
-##Lien :
+## Lien :
 ```
 0: test0
 1: << 0 >>1
@@ -38,7 +38,7 @@ Devient
 "1": "test01"
 ```
 
-##Héritage :
+## Héritage :
 ```
 human:
     level: 1
@@ -90,7 +90,7 @@ Devient
 }
 ```
 
-###Fix++
+### Fix++
 L'ajout d'un opérateur est possible (pas encore stable) :
 ```
 human:
