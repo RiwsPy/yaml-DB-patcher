@@ -3,16 +3,16 @@ from json import dump
 import os
 from pathlib import Path
 from .data_dict import Data_dict
-from utils import ForceReturnOfMyClass
+from ..utils import OutputOfMyClass
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-class StrModel(str, metaclass=ForceReturnOfMyClass):
+class StrModel(str, metaclass=OutputOfMyClass):
     inc_string = "£"
     path_string = "$"
 
-    def convert_inc_string(self) -> "StrModel":
+    def replace_inc_string(self) -> "StrModel":
         """
         Permet d'unicifier un attribut en remplacant une chaîne de caractère par un identifiant sans avoir besoin de connaître sa valeur.
         Notamment utilisé par les 'fix'.
@@ -33,14 +33,24 @@ class YamlReader:
     str_model = StrModel
     file_order = "_order.ini"
     ignore_files = set()
+    _data = None
 
-    def __init__(self, path: str):
-        self._dirname = os.path.join(BASE_DIR, os.path.dirname(path))
-        self._basename = os.path.basename(path)
+    def __init__(self, **kwargs):
+        self._dirname = ""
+        self._basename = ""
+        for k, v in kwargs.items():
+            setattr(self, k, v)
 
     @property
     def data(self) -> str:
-        return self.read().convert_inc_string().replace_path_string(self.patchpath)
+        return self._data
+
+    def convert(self) -> None:
+        self._data = (
+            self.str_model(self._data)
+            .replace_inc_string()
+            .replace_path_string(self.patchpath)
+        )
 
     @property
     def abspath(self) -> str:
@@ -56,13 +66,16 @@ class YamlReader:
         """
         return os.path.basename(os.path.abspath(self._dirname))
 
-    def read(self) -> StrModel:
+    def load(self, path: str) -> None:
         """
         Lit le fichier de l'instance ou tous les fichiers présents dans le dossier, les concatènent et les renvoient
         A ce stade, le contenu n'est pas encore interprété
 
         Attention: actuellement, le Yaml n'a pas (encore ?) de mimetype officiel
         """
+        self._dirname = os.path.join(BASE_DIR, os.path.dirname(path))
+        self._basename = os.path.basename(path)
+
         read_file = ""
         if os.path.isdir(self.abspath):  # repository
             order_files = os.listdir(self._dirname)
@@ -80,7 +93,7 @@ class YamlReader:
             with open(self.abspath, "r") as file_content:
                 read_file += file_content.read()
 
-        return self.str_model(read_file)
+        self._data = read_file
 
     def get_ignore_files(self) -> set:
         ret = self.ignore_files
@@ -94,30 +107,30 @@ class YamlManager:
     reader_cls = YamlReader
     db_directory = "db"
     filename = "default.json"
+    _data = None
 
-    def __init__(self, *paths):
-        self.paths = paths
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items():
+            setattr(self, k, v)
 
-    # TODO: gestion de l'ordre dans les dossiers
-    def read(self) -> str:
-        ret = ""
-        for path in self.paths:
+    def load(self, *paths) -> None:
+        file_content = ""
+        reader = self.reader_cls()
+        for path in paths:
             if not os.path.exists(path):
                 print(f"{path} not found.")
             else:
-                ret += self.reader_cls(path).data
-        return ret
+                reader.load(path)
+                reader.convert()
+                file_content += reader.data
+
+        data = Data_dict(is_first=self.is_first, **safe_load(file_content))
+        data.convert()
+        self._data = data
 
     @property
     def data(self) -> Data_dict:
-        file_content = self.read()
-        ret = Data_dict(is_first=self.is_first, **safe_load(file_content))
-        ret.key_disaggregation()
-        ret.extends()
-        ret.fix_me()
-        ret.resolve_links()
-
-        return ret
+        return self._data
 
     def dump(self, force: bool = True, **kwargs) -> None:
         """

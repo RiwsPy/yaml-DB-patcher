@@ -7,7 +7,7 @@ $ITEM:
 
 $INANIMATE:
   char: ''
-  name: <$0>
+  name: <<$0>>
   color:
     <: $0
 

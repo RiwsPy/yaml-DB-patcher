@@ -1,7 +1,7 @@
 import functools
 
 
-class ForceReturnOfMyClass(type):
+class OutputOfMyClass(type):
     """
     Méta classe qui permet de convertir le type des retours de toutes les méthodes de la classe dans le type de la classe.
 

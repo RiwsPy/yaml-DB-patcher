@@ -61,6 +61,12 @@ class Data_dict(dict):
                 return {}
         return default
 
+    def convert(self) -> None:
+        self.key_disaggregation()
+        self.extends()
+        self.fix_me()
+        self.resolve_links()
+
     def extends(self) -> None:
         # applique les différents héritages
         for k, v in self.items():
