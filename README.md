@@ -1,4 +1,4 @@
-# Yaml mult db
+# Yaml DB patcher
 
 **Preview :**
 Le Yaml permet la représentation de données par sérialisation.
