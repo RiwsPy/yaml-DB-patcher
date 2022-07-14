@@ -1,0 +1,28 @@
+$CRE:
+  char: C
+
+~PLAYER:
+  char: '@'
+  <: $CRE
+  name: << $d.1 >>
+  gender: 1
+  reaction: 0x0F0
+  color: <_color.WHITE>
+  script: $script.cre.PLAYER
+  slot:
+    bag: [$POTN001, $KEY001, $SCRL001, $ARMOR001]
+  fix.£:
+    level: 1
+    slot.bag|+: ['$SCRL001']
+    gender|+: -1
+  fix.£.test: 1
+
+~PLAYER.fix.£:
+  is_container: yes
+
+~PLAYER.name: <<$Ii>>
+~PLAYER.slot.bag2: [$POTN001]
+
+$Ii: << $d.0 >> <<$olo>>
+$olo: Youplaboum <<$ikimaste>>
+$ikimaste: Humshtakamacha

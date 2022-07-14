@@ -25,9 +25,10 @@ operator_to_method = {
     "**": "__pow__",
 }
 
+
 class Data_dict(dict):
     _first_instance = None
-    regex_links_in_str = re.compile(r"(<< *([\w\. ]+) *>>)")
+    regex_links_in_str = re.compile(r"(<<([\w\. ]+)>>)")
     heritage_string = "<"
     attr_split_string = "."
     fix_string = "fix"
@@ -135,7 +136,6 @@ class Data_dict(dict):
         """
         self["OBJECT"]["fix"]["fix_id"]["fix_content"]["fix_key|method"] = fix_value
         """
-        # TODO: rajouter des options +, -, *, /, |, &, []+...
         for key, value in self.copy().items():
             if not isinstance(value, dict) or self.fix_string not in value:
                 continue
@@ -179,6 +179,7 @@ class Data_dict(dict):
         def resolve_links_in_str(instance, text: str) -> str:
             dialogs = re.split(instance.regex_links_in_str, text)
             for index, content_id in enumerate(dialogs[2::3]):
+                content_id = content_id.strip()
                 new_str = resolve_links_in_str(instance, instance[content_id]) or ""
                 instance[content_id] = new_str
                 dialogs[index * 3 + 1] = ""
