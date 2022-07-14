@@ -1,11 +1,23 @@
-from yaml import safe_load
-from json import dump
+import yaml
+import json
 import os
 from pathlib import Path
 from .data_dict import Data_dict
-from ..utils import OutputOfMyClass
+from utils import OutputOfMyClass
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+def dump_file(func):
+    def _(self, filename, *args, force=True, **kwargs):
+        if force is False and os.path.exists(self.output_basename(filename)):
+            print(f"Échec. '{self.output_filename}' pré-existant.")
+            raise FileExistsError
+
+        func(self, filename, *args, **kwargs)
+        print(f"Écriture dans {self.output_basename(filename)} terminée.")
+
+    return _
 
 
 class StrModel(str, metaclass=OutputOfMyClass):
@@ -106,7 +118,6 @@ class YamlManager:
     is_first = False
     reader_cls = YamlReader
     db_directory = "db"
-    filename = "default.json"
     _data = None
 
     def __init__(self, **kwargs):
@@ -124,7 +135,7 @@ class YamlManager:
                 reader.convert()
                 file_content += reader.data
 
-        data = Data_dict(is_first=self.is_first, **safe_load(file_content))
+        data = Data_dict(is_first=self.is_first, **yaml.safe_load(file_content))
         data.convert()
         self._data = data
 
@@ -132,16 +143,15 @@ class YamlManager:
     def data(self) -> Data_dict:
         return self._data
 
-    def dump(self, force: bool = True, **kwargs) -> None:
-        """
-        :param force: si False, renvoie FileExistsError si le ficher est pré-existant
-        """
-        dirname = os.path.join(BASE_DIR, self.db_directory, self.filename)
-        if force is False and os.path.exists(dirname):
-            print(f"Échec. '{self.filename}' pré-existant.")
-            raise FileExistsError
+    @dump_file
+    def dump_json(self, filename, **kwargs) -> None:
+        with open(self.output_basename(filename), "w") as file:
+            json.dump(self.data, file, **kwargs)
 
-        with open(dirname, "w") as file:
-            dump(self.data, file, **kwargs)
+    @dump_file
+    def dump_yaml(self, filename, **kwargs) -> None:
+        with open(self.output_basename(filename), "w") as file:
+            yaml.dump(dict(self.data), file, **kwargs)
 
-        print(f"Écriture dans {dirname} terminée.")
+    def output_basename(self, filename:str):
+        return os.path.join(BASE_DIR, self.db_directory, filename)

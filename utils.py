@@ -43,7 +43,7 @@ class OutputOfMyClass(type):
 def update_soft(source: dict, other: dict, *no_dict_key) -> None:
     """
     Similaire à dict.update(other_dict)
-    Excepté : les clés ne sont écrasées qu'en dernier recours
+    Excepté : seules les values sont affectées
 
     >>> a = {'key1': {"key2": "a_value1", "key3": "a_value2"}}
     >>> b = {'key1': {"key3": "b_value1"}}

@@ -12,7 +12,7 @@ L'idée est que l'on puisse développer une base de données ouverte qui soit no
 L'idée est que chacun puisse avoir sa propre version de la base de données en créant ou utilisant les patchs créés par soi ou par d'autres utilisateurs.
 Tout en conservant la possibilité d'annuler un patch ou même de patcher un patch.
 
-L'idée est de partir d'une multitude de fichiers yaml, de les assembler de façon ordonnée afin de générer un fichier unique fichier json qui sera exploité par l'outil.
+L'idée est de partir d'une multitude de fichiers yaml, de les assembler de façon ordonnée afin de générer un fichier unique fichier yaml (ou json) qui sera exploité par l'outil.
 
 ## En construction
 
@@ -22,20 +22,21 @@ from inc.base import YamlManager
 
 cls = YamlManager()
 cls.load("_base/")
-cls.dump(ensure_ascii=False, indent=1)
+cls.dump_yaml("default.yaml")
+# cls.dump_json("default.json", ensure_ascii=False, indent=1)
 ```
 
 ### Exemples :
 
 ## Lien :
 ```
-0: test0
-1: << 0 >>1
+t0: test0
+t1: << t0 >>1
 ```
 Devient
 ```
-"0": "test0",
-"1": "test01"
+t0: test0
+t1: test01
 ```
 
 ## Héritage :
@@ -51,15 +52,14 @@ villager:
 
 Devient
 ```
-"human": {
-    "level": 1
-    "hp": 12
-}
-"villager": {
-    "level": 1
-    "hp": 12
-    "name": Villageois
-}
+human:
+  hp: 12
+  level: 1
+
+villager:
+  hp: 12
+  level: 1
+  name: Villageois
 ```
 
 ## Fix :
@@ -77,17 +77,15 @@ human.fix.£.level: 2
 
 Devient
 ```
-{
- "human": {
-  "level": 2,
-  "hp": 12
- },
- "villager": {
-  "level": 2,
-  "hp": 12,
-  "name": "Villageois"
- }
-}
+human:
+  hp: 12
+  level: 2
+
+villager:
+  hp: 12
+  level: 2
+  name: Villageois
+
 ```
 
 ### Fix++
@@ -104,11 +102,7 @@ human.fix.£:
 
 Devient
 ```
-{
- "human": {
-  "level": 3,
-  "hp": 36
- }
-}
+human:
+  level: 3
+  hp: 36
 ```
-
