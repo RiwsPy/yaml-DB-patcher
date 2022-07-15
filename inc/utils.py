@@ -40,27 +40,21 @@ class OutputOfMyClass(type):
         return _
 
 
-def update_soft(source: dict, other: dict, *no_dict_key) -> None:
+def update_values(source: dict, other: dict) -> None:
     """
     Similaire à dict.update(other_dict)
     Excepté : seules les values sont affectées
-
-    >>> a = {'key1': {"key2": "a_value1", "key3": "a_value2"}}
-    >>> b = {'key1': {"key3": "b_value1"}}
-    >>> update_soft(a, b)
-    >>> a
-    Output: {'key1': {"key2": "a_value1", "key3": "b_value1"}}
     """
-    if not isinstance(source, dict) or not isinstance(other, dict):
+    if not isinstance(other, dict) or not isinstance(source, dict):
         return
 
     for k, v in other.items():
-        if k not in source or not isinstance(v, dict) or k in no_dict_key:
-            try:
-                source[k] = v.copy()
-            except AttributeError:
-                source[k] = v
+        if isinstance(v, dict) and isinstance(source.get(k), dict):
+            update_values(source[k], other[k])
         else:
-            source_copy = source[k].copy()
-            update_soft(source_copy, v, *no_dict_key)
-            source[k] = source_copy
+            # v.copy() ??
+            source[k] = v
+
+
+class Breaker(Exception):
+    pass

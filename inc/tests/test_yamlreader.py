@@ -36,6 +36,21 @@ def test_key_disaggregation():
     data.key_disaggregation()
     assert data == {"test": {"name": {"first": "firstname", "nickname": "nickname"}}}
 
+    data = Data_dict(
+        **{"test": {"name": "Roger"}, "test.hp": 1}
+    )
+    data.key_disaggregation()
+    assert data == {"test": {"name": "Roger", "hp": 1}}
+
+    data = Data_dict(
+        **{"test": {"name": "Roger"}, "test.hp.max": 1}
+    )
+    data.key_disaggregation()
+    assert data == {"test": {"name": "Roger", "hp": {"max": 1}}}
+
+    data = Data_dict(**{"fix.test": 1})
+    data.key_disaggregation()
+    assert data == {"fix": {"test": 1}}
 
 def test_extends():
     cls = YamlManager(is_first=True)
@@ -48,3 +63,17 @@ def test_extends():
 
     # mult-herit
     assert data["tests.ITEM.char"] == "1"
+
+
+def test_resolve_links():
+    cls = Data_dict()
+    cls.update({"0": "value0", "1": "<<0>>1"})
+    cls.resolve_links()
+    expected_value = {"0": "value0", "1": "value01"}
+    assert cls == expected_value
+
+    cls.clear()
+    cls.update({"person": {"name": "Loulou"}, "other": {"name": "<<person.name>>"}})
+    cls.resolve_links()
+    expected_value = {"person": {"name": "Loulou"}, "other": {"name": "Loulou"}}
+    assert cls == expected_value

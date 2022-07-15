@@ -3,7 +3,7 @@ import json
 import os
 from pathlib import Path
 from .data_dict import Data_dict
-from utils import OutputOfMyClass
+from .utils import OutputOfMyClass
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -11,8 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 def dump_file(func):
     def _(self, filename, *args, force=True, **kwargs):
         if force is False and os.path.exists(self.output_basename(filename)):
-            print(f"Échec. '{self.output_filename}' pré-existant.")
-            raise FileExistsError
+            raise FileExistsError(f"Échec. '{self.output_filename}' pré-existant.")
 
         func(self, filename, *args, **kwargs)
         print(f"Écriture dans {self.output_basename(filename)} terminée.")
@@ -22,7 +21,16 @@ def dump_file(func):
 
 class StrModel(str, metaclass=OutputOfMyClass):
     inc_string = "£"
+    fix_string = "F" + inc_string
     path_string = "$"
+
+    def replace_fix_string(self) -> "StrModel":
+        splited_str = self.split(self.fix_string)
+        ret = splited_str[0]
+        for index, txt in enumerate(splited_str[1:]):
+            ret = ret + "fixs." + str(index).zfill(8) + txt
+
+        return ret
 
     def replace_inc_string(self) -> "StrModel":
         """
@@ -59,8 +67,8 @@ class YamlReader:
 
     def convert(self) -> None:
         self._data = (
-            self.str_model(self._data)
-            .replace_inc_string()
+            self.str_model(self._data).replace_fix_string()
+            # .replace_inc_string()
             .replace_path_string(self.patchpath)
         )
 
@@ -151,7 +159,7 @@ class YamlManager:
     @dump_file
     def dump_yaml(self, filename, **kwargs) -> None:
         with open(self.output_basename(filename), "w") as file:
-            yaml.dump(dict(self.data), file, **kwargs)
+            yaml.dump(json.loads(json.dumps(self.data)), file, **kwargs)
 
-    def output_basename(self, filename:str):
+    def output_basename(self, filename: str):
         return os.path.join(BASE_DIR, self.db_directory, filename)

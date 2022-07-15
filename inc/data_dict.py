@@ -2,6 +2,7 @@ import operator
 import re
 from typing import Any
 import json
+from .utils import Breaker, update_values
 
 operator_to_method = {
     "+": "__add__",
@@ -31,20 +32,20 @@ class Data_dict(dict):
     regex_links_in_str = re.compile(r"(<<([\w\. ]+)>>)")
     heritage_string = "<"
     attr_split_string = "."
-    fix_string = "fix"
+    fix_string = "fixs"
 
-    def __new__(cls, *args, is_first: bool = False, **kwargs):
+    def __new__(cls, *args, **kwargs):
         obj_id = super().__new__(cls, *args, **kwargs)
-        if is_first or cls._first_instance is None:
+        if kwargs.pop("is_first", False) or cls._first_instance is None:
             cls._first_instance = obj_id
         return obj_id
 
     # captation de l'attribut is_first
-    def __init__(self, *args, is_first: bool = None, **kwargs):
+    def __init__(self, *args, is_first=False, **kwargs):
         super().__init__(*args, **kwargs)
 
     def __getitem__(self, key: str) -> Any:
-        # suit les chemins x.y comme s'il s'agissait de {"x": {"y": object}}
+        # self["a.b"] <==> self["a"]["b"]
         if self.attr_split_string not in key:
             return super().__getitem__(key)
 
@@ -53,18 +54,37 @@ class Data_dict(dict):
             sub_dict = sub_dict[attr]
         return sub_dict
 
+    def __setitem__(self, key: str, value) -> None:
+        """
+        self["a.b"] = 2 <==> {"a": {"b": 2}}
+        """
+        # TODO: pas de type immutable accepté comme clé ?
+        sub_dict = self
+        attrs = key.split(self.attr_split_string)
+        for attr in attrs[:-1]:
+            sub_dict = sub_dict.setdefault(attr, self.__class__())
+        else:
+            if sub_dict is self:  # ~ len(attrs) == 1
+                # update_values ??
+                super().__setitem__(key, value)
+            else:
+                sub_dict[attrs[-1]] = value
+
     def get(self, key: str, default=None) -> Any:
         try:
             return self.__getitem__(key)
         except KeyError:
-            if default is None:
-                return {}
-        return default
+            return default
 
     def convert(self) -> None:
         self.key_disaggregation()
         self.extends()
-        self.fix_me()
+        if self is self._first_instance:
+            self.fix_me()
+            try:
+                del self[self.fix_string]
+            except KeyError:
+                pass
         self.resolve_links()
 
     def extends(self) -> None:
@@ -74,24 +94,23 @@ class Data_dict(dict):
                 continue
 
             if self.heritage_string in v:
-                value_expended = self.__class__()
-                for key, value in v.items():
-                    if key != self.heritage_string:
-                        value_expended[key] = value
-                        continue
+                try:
+                    value_expended = self.__class__()
+                    for key, value in v.items():
+                        if key != self.heritage_string:
+                            value_expended[key] = value
+                            continue
 
-                    # héritage multiple <: cls1 cls2 cls3
-                    force_break = False
-                    for entity in value.split(" "):
-                        value_expansion = self._first_instance.get(entity) or {}
-                        if isinstance(value_expansion, dict):
-                            value_expended.update(value_expansion)
-                        else:
-                            value_expended = value_expansion
-                            force_break = True
-                            break
-                    if force_break:
-                        break
+                        # héritage multiple <: cls1 cls2 cls3
+                        for entity in value.split(" "):
+                            value_expansion = self._first_instance.get(entity, dict())
+                            if isinstance(value_expansion, dict):
+                                value_expended.update(value_expansion)
+                            else:
+                                value_expended = value_expansion
+                                raise Breaker
+                except Breaker:
+                    pass
             else:
                 value_expended = self.__class__(v)
                 value_expended.extends()
@@ -106,110 +125,91 @@ class Data_dict(dict):
 
     def key_disaggregation(self) -> None:
         """
-        >self.data = {'cre.PLAYER': {'name': 'player_name', 'con': 1}}
+        >self._data = {'cre.PLAYER': {'name': 'player_name'}}
         >self.key_disaggregation()
         >self.data
-        {'cre': {'PLAYER': {'name': 'player_name', 'con': 1}}}
+        {'cre': {'PLAYER': {'name': 'player_name'}}}
         """
         structured_dict = self.__class__()
-        fix_str = self.fix_string + self.attr_split_string
         for k, v in self.items():
-            sub_dict = structured_dict
-            if isinstance(k, str):
-                if k.startswith(fix_str):
-                    key_1, _, key_2 = k.partition(self.attr_split_string)
-                    if key_1 not in sub_dict:
-                        sub_dict[key_1] = dict()
-                    sub_dict[key_1][key_2] = v
-                    continue
-                splited_keys = k.split(self.attr_split_string)
-            else:
-                splited_keys = [k]
-            for splited_key in splited_keys[:-1]:
-                if splited_key not in sub_dict:
-                    sub_dict[splited_key] = {}
-                sub_dict = sub_dict[splited_key]
-
             if isinstance(v, dict):
                 v = self.__class__(v)
                 v.key_disaggregation()
-            sub_dict[splited_keys[-1]] = v  # dernier élément
+            structured_dict[k] = v
 
         self.clear()
         self.update(structured_dict)
 
     def fix_me(self) -> None:
         """
-        self["OBJECT"]["fix"]["fix_id"]["fix_content"]["fix_key|method"] = fix_value
+        self["fixs"]["fix_id"]["fix_keys|method?"] = fix_value
         """
-        for key, value in self.copy().items():
-            if not isinstance(value, dict) or self.fix_string not in value:
-                continue
+        fixs = self.get(self.fix_string)
+        if not isinstance(fixs, dict):
+            return
 
-            # tri des fixs en fonction du pk
-            for fix_id, fix_content in sorted(
-                value[self.fix_string].items(), key=operator.itemgetter(0)
-            ):
-                if isinstance(fix_content, dict):
-                    for fix_key_with_attrs, fix_value in fix_content.items():
-                        if "|" not in fix_key_with_attrs:
-                            fix_key = fix_key_with_attrs
-                        else:
-                            splited_key = fix_key_with_attrs.split("|")
-                            fix_key = splited_key[0]
-                            methods = splited_key[1:]
-                            try:
-                                content = value[fix_key].copy()
-                            except AttributeError:
-                                content = value[fix_key]
-                            except TypeError:
-                                continue
-
-                            for method in methods:
-                                fix_value = self.apply_method(
-                                    content, fix_value, method
-                                )
-                        value[fix_key] = fix_value
-                else:
-                    # retrait de la valeur £ dans fix_id
-                    fix_id = fix_id.partition(self.attr_split_string)[2]
-                    value[fix_id] = fix_content
-
-            del value[self.fix_string]
-            value = self.__class__(value)
-            value.key_disaggregation()
-            # update_soft(self[key], value)
-            self[key] = value
+        for fix_id, fix_contents in sorted(fixs.items(), key=operator.itemgetter(0)):
+            if isinstance(fix_contents, dict):
+                self.update_values_with_operator(fix_contents)
 
     def resolve_links(self) -> None:
-        def resolve_links_in_str(instance, text: str) -> str:
-            dialogs = re.split(instance.regex_links_in_str, text)
+        def resolve_links_in_str(text: str) -> str:
+            dialogs = re.split(self.regex_links_in_str, text)
             for index, content_id in enumerate(dialogs[2::3]):
                 content_id = content_id.strip()
-                new_str = resolve_links_in_str(instance, instance[content_id]) or ""
-                instance[content_id] = new_str
+                content_value = self[content_id]
+                if isinstance(content_value, str):
+                    content_value = resolve_links_in_str(content_value) or ""
+                    self[content_id] = content_value
+                else:
+                    # TODO: problème si type !str, mais dans ce cas, plus possible de faire un join
+                    pass
                 dialogs[index * 3 + 1] = ""
-                dialogs[index * 3 + 2] = new_str
+                dialogs[index * 3 + 2] = content_value
             return "".join(dialogs)
 
-        txt = resolve_links_in_str(self, json.dumps(self))
+        txt = resolve_links_in_str(json.dumps(self))
         self.clear()
         self.update(json.loads(txt))
 
     @staticmethod
-    def apply_method(source: Any, value: Any, method: str) -> Any:
+    def apply_operator(source: Any, value: Any, ope: str) -> Any:
         try:
             value = value.copy()
         except AttributeError:
             pass
 
-        if method in operator_to_method:
+        method = operator_to_method.get(ope)
+        if method:
             try:
-                return getattr(source, operator_to_method[method])(value)
+                return getattr(source, method)(value)
             except AttributeError:
                 print(
-                    f"fix non appliqué: {type(source)} have no method for operator {method}"
+                    f"fix non appliqué: {type(source)} pas de méthode pour l'opérateur {ope}"
                 )
             except TypeError:
                 print(f"fix non appliqué: type incorrect {type(source)}, {type(value)}")
+            except:
+                print(f"Erreur inconnue: {source} {ope} {value}")
         return value
+
+    def update_values_with_operator(self, other: dict) -> None:
+        """
+        Similaire à dict.update(other_dict)
+        Excepté : seules les values sont affectées
+        Applique une méthode supplémentaire sur la clé finale pour déterminer si une méthode doit être appliquée sur value
+        """
+        if not isinstance(other, dict):
+            return
+
+        for k, v in other.items():
+            if isinstance(v, dict) and isinstance(self.get(k), dict):
+                self[k].update_values_with_operator(other[k])
+            else:
+                key_without_ope, _, ope = k.rpartition("|")
+                if key_without_ope and ope:
+                    k = key_without_ope
+                    # valeur par défaut = valeur par défaut du type(v)
+                    value_origin = self.get(k, type(v)())
+                    v = self.apply_operator(value_origin, v, ope)
+                self[k] = v
