@@ -2,7 +2,7 @@ import operator
 import re
 from typing import Any
 import json
-from .utils import Breaker, update_values
+from .utils import Breaker
 
 operator_to_method = {
     "+": "__add__",
@@ -32,7 +32,7 @@ class Data_dict(dict):
     regex_links_in_str = re.compile(r"(<<([\w\. ]+)>>)")
     heritage_string = "<"
     attr_split_string = "."
-    fix_string = "fixs"
+    fix_string = "__fixs"
 
     def __new__(cls, *args, **kwargs):
         obj_id = super().__new__(cls, *args, **kwargs)

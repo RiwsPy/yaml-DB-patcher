@@ -28,7 +28,7 @@ class StrModel(str, metaclass=OutputOfMyClass):
         splited_str = self.split(self.fix_string)
         ret = splited_str[0]
         for index, txt in enumerate(splited_str[1:]):
-            ret = ret + "fixs." + str(index).zfill(8) + txt
+            ret = ret + Data_dict.fix_string + Data_dict.attr_split_string + str(index).zfill(8) + txt
 
         return ret
 
