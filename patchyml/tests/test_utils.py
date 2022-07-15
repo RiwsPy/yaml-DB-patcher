@@ -1,4 +1,4 @@
-from inc.utils import update_values
+from patchyml.utils import update_values
 
 
 def test_update_values():

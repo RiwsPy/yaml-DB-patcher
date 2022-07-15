@@ -27,7 +27,7 @@ operator_to_method = {
 }
 
 
-class Data_dict(dict):
+class Dyct(dict):
     _first_instance = None
     regex_links_in_str = re.compile(r"(<<([\w\. ]+)>>)")
     heritage_string = "<"

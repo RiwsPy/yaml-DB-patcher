@@ -2,7 +2,7 @@ import yaml
 import json
 import os
 from pathlib import Path
-from .data_dict import Data_dict
+from .db import Dyct
 from .utils import OutputOfMyClass
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -28,7 +28,13 @@ class StrModel(str, metaclass=OutputOfMyClass):
         splited_str = self.split(self.fix_string)
         ret = splited_str[0]
         for index, txt in enumerate(splited_str[1:]):
-            ret = ret + Data_dict.fix_string + Data_dict.attr_split_string + str(index).zfill(8) + txt
+            ret = (
+                ret
+                + Dyct.fix_string
+                + Dyct.attr_split_string
+                + str(index).zfill(8)
+                + txt
+            )
 
         return ret
 
@@ -143,12 +149,12 @@ class YamlManager:
                 reader.convert()
                 file_content += reader.data
 
-        data = Data_dict(is_first=self.is_first, **yaml.safe_load(file_content))
+        data = Dyct(is_first=self.is_first, **yaml.safe_load(file_content))
         data.convert()
         self._data = data
 
     @property
-    def data(self) -> Data_dict:
+    def data(self) -> Dyct:
         return self._data
 
     @dump_file

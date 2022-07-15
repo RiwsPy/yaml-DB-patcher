@@ -1,4 +1,4 @@
-from ..base import StrModel
+from ..patchyml import StrModel
 
 
 def test_output_type():
