@@ -72,7 +72,7 @@ villager:
     <: human
     name: Villageois
 
-human.fix.£.level: 2
+F£.human.level: 2
 ```
 
 Devient
@@ -95,14 +95,16 @@ human:
     level: 1
     hp: 12
 
-human.fix.£:
+F£.human:
     level|+: 2
     hp|*: 3
+    atk|+: 1
 ```
 
 Devient
 ```
 human:
-  level: 3
+  atk: 1
   hp: 36
+  level: 3
 ```
