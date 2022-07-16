@@ -149,7 +149,7 @@ class YamlManager:
                 reader.convert()
                 file_content += reader.data
 
-        data = Dyct(is_first=self.is_first, **yaml.safe_load(file_content))
+        data = Dyct(yaml.safe_load(file_content), is_first=self.is_first)
         data.convert()
         self._data = data
 

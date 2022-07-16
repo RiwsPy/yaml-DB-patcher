@@ -1,4 +1,5 @@
-from .patchyml import YamlManager
+from .patchyml import YamlManager, YamlReader, StrModel
+from .db import Dyct
 
 __title__ = 'yamldbpatcher'
 __version__ = '0.2.0'

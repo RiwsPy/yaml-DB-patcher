@@ -27,6 +27,12 @@ operator_to_method = {
 }
 
 
+def key_is_str(func):
+    def _(self, key, *args, **kwargs):
+        return func(self, str(key), *args, **kwargs)
+    return _
+
+
 class Dyct(dict):
     _first_instance = None
     regex_links_in_str = re.compile(r"(<<([\w\. ]+)>>)")
@@ -44,6 +50,7 @@ class Dyct(dict):
     def __init__(self, *args, is_first=False, **kwargs):
         super().__init__(*args, **kwargs)
 
+    @key_is_str
     def __getitem__(self, key: str) -> Any:
         # self["a.b"] <==> self["a"]["b"]
         if self.attr_split_string not in key:
@@ -54,13 +61,14 @@ class Dyct(dict):
             sub_dict = sub_dict[attr]
         return sub_dict
 
-    def __setitem__(self, key: str, value) -> None:
+    @key_is_str
+    def __setitem__(self, key: str, value: Any) -> None:
         """
         self["a.b"] = 2 <==> {"a": {"b": 2}}
         """
-        # TODO: pas de type immutable accepté comme clé ?
         sub_dict = self
         attrs = key.split(self.attr_split_string)
+
         for attr in attrs[:-1]:
             sub_dict = sub_dict.setdefault(attr, self.__class__())
         else:
@@ -172,27 +180,6 @@ class Dyct(dict):
         self.clear()
         self.update(json.loads(txt))
 
-    @staticmethod
-    def apply_operator(source: Any, value: Any, ope: str) -> Any:
-        try:
-            value = value.copy()
-        except AttributeError:
-            pass
-
-        method = operator_to_method.get(ope)
-        if method:
-            try:
-                return getattr(source, method)(value)
-            except AttributeError:
-                print(
-                    f"fix non appliqué: {type(source)} pas de méthode pour l'opérateur {ope}"
-                )
-            except TypeError:
-                print(f"fix non appliqué: type incorrect {type(source)}, {type(value)}")
-            except:
-                print(f"Erreur inconnue: {source} {ope} {value}")
-        return value
-
     def update_values_with_operator(self, other: dict) -> None:
         """
         Similaire à dict.update(other_dict)
@@ -211,5 +198,26 @@ class Dyct(dict):
                     k = key_without_ope
                     # valeur par défaut = valeur par défaut du type(v)
                     value_origin = self.get(k, type(v)())
-                    v = self.apply_operator(value_origin, v, ope)
+                    v = apply_operator(value_origin, v, ope)
                 self[k] = v
+
+
+def apply_operator(source: Any, value: Any, ope: str) -> Any:
+    try:
+        value = value.copy()
+    except AttributeError:
+        pass
+
+    method = operator_to_method.get(ope)
+    if method:
+        try:
+            return getattr(source, method)(value)
+        except AttributeError:
+            print(
+                f"fix non appliqué: {type(source)} pas de méthode pour l'opérateur {ope}"
+            )
+        except TypeError:
+            print(f"fix non appliqué: type incorrect {type(source)}, {type(value)}")
+        except:
+            print(f"Erreur inconnue: {source} {ope} {value}")
+    return source if source else value
