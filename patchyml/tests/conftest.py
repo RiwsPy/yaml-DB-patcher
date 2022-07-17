@@ -1,6 +1,7 @@
 from pathlib import Path
 import pytest
-from patchyml import Dyct, YamlManager, YamlReader, StrModel
+from patchyml import YamlManager, YamlReader
+from ..db import StrModel, Dyct
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -22,7 +23,7 @@ def base_dir() -> Path:
 
 @pytest.fixture
 def dyct() -> Dyct:
-    yield Dyct()
+    yield Dyct(is_first=True)
 
 
 @pytest.fixture

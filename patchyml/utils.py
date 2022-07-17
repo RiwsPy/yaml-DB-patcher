@@ -20,7 +20,7 @@ class OutputOfMyClass(type):
             if callable(attrval):
                 nmspc[attrname] = mcs.change_return_type(attrval, bases)
 
-        # overkill? ajout de toutes les méthodes str wrappées dans StrModel
+        # overkill? ajout de toutes les méthodes parentes wrappées dans StrModel
         for base in bases:
             for attrname, attrval in base.__dict__.items():
                 if callable(attrval) and attrname not in nmspc:

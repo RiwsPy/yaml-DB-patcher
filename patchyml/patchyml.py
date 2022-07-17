@@ -2,57 +2,11 @@ import yaml
 import json
 import os
 from pathlib import Path
-from .db import Dyct
-from .utils import OutputOfMyClass
+
+from .decorators import dump_file
+from .db import Dyct, StrModel
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-
-def dump_file(func):
-    def _(self, filename, *args, force=True, **kwargs):
-        if force is False and os.path.exists(self.output_basename(filename)):
-            raise FileExistsError(f"Échec. '{self.output_filename}' pré-existant.")
-
-        func(self, filename, *args, **kwargs)
-        print(f"Écriture dans {self.output_basename(filename)} terminée.")
-
-    return _
-
-
-class StrModel(str, metaclass=OutputOfMyClass):
-    inc_string = "£"
-    fix_string = "F" + inc_string
-    path_string = "$"
-
-    def replace_fix_string(self) -> "StrModel":
-        splited_str = self.split(self.fix_string)
-        ret = splited_str[0]
-        for index, txt in enumerate(splited_str[1:]):
-            ret = (
-                ret
-                + Dyct.fix_string
-                + Dyct.attr_split_string
-                + str(index).zfill(8)
-                + txt
-            )
-
-        return ret
-
-    def replace_inc_string(self) -> "StrModel":
-        """
-        Permet d'unicifier un attribut en remplacant une chaîne de caractère par un identifiant sans avoir besoin de connaître sa valeur.
-        Notamment utilisé par les 'fix'.
-        """
-        splited_str = self.split(self.inc_string)
-        ret = splited_str[0]
-        # ~dynamic join
-        for index, txt in enumerate(splited_str[1:]):
-            ret = ret + str(index).zfill(8) + txt
-
-        return ret
-
-    def replace_path_string(self, patchpath: str) -> "StrModel":
-        return self.replace(self.path_string, f"{patchpath}.")
 
 
 class YamlReader:
@@ -154,7 +108,7 @@ class YamlManager:
         self._data = data
 
     @property
-    def data(self) -> Dyct:
+    def data(self):
         return self._data
 
     @dump_file

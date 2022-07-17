@@ -1,3 +1,6 @@
+from patchyml.db import apply_operator
+
+
 def test_key_disaggregation_level1(dyct):
     dyct.update({"cre.PLAYER": {"name": "player_name", "con": 1}})
     dyct.key_disaggregation()
@@ -37,20 +40,22 @@ def test_resolve_links_level1(dyct):
     assert dyct == expected_value
 
 
+"""
+# Provisoire #5
 def test_resolve_links_level2(dyct):
     dyct.update({"person": {"name": "Loulou"}, "other": {"name": "<<person.name>>"}})
     dyct.resolve_links()
     expected_value = {"person": {"name": "Loulou"}, "other": {"name": "Loulou"}}
     assert dyct == expected_value
+"""
 
-
-def test_apply_operator(dyct):
-    assert dyct.apply_operator(1, 2, "+") == 3
-    assert dyct.apply_operator(12, 3, "*") == 36
-    assert dyct.apply_operator(None, -1, "+") == -1
-    assert dyct.apply_operator(0, 2, "/") == 0
-    assert dyct.apply_operator(["SCRL01"], ["POTN01"], "+") == ["SCRL01", "POTN01"]
-    assert dyct.apply_operator(["SCRL01"], "POTN01", "+") == ["SCRL01"]
+def test_apply_operator():
+    assert apply_operator(1, 2, "+") == 3
+    assert apply_operator(12, 3, "*") == 36
+    assert apply_operator(None, -1, "+") == -1
+    assert apply_operator(0, 2, "/") == 0
+    assert apply_operator(["SCRL01"], ["POTN01"], "+") == ["SCRL01", "POTN01"]
+    assert apply_operator(["SCRL01"], "POTN01", "+") == ["SCRL01"]
 
     # __sub__ n'existe pas pour le type list
     # assert dyct.apply_operator(["SCRL01", "POTN01"], ["POTN01"], "-") == ["SCRL01"]

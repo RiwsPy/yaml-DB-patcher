@@ -1,41 +1,75 @@
-import operator
 import re
 from typing import Any
-import json
-from .utils import Breaker
+import operator
 
-operator_to_method = {
-    "+": "__add__",
-    "-": "__sub__",
-    "/": "__truediv__",
-    "*": "__mul__",
-    "&": "__and__",
-    ">=": "__ge__",
-    ">": "__gt__",
-    "<=": "__le__",
-    "<": "__lt__",
-    "%": "__mod__",
-    "|": "__or__",
-    "^": "__xor__",
-    "!=": "__ne__",
-    "==": "__eq__",
-    "//": "__floordiv__",
-    "~": "__invert__",
-    "<<": "__lshift__",
-    ">>": "__rshift__",
-    "**": "__pow__",
-}
+from .utils import OutputOfMyClass, Breaker
+from .decorators import key_is_str
 
 
-def key_is_str(func):
-    def _(self, key, *args, **kwargs):
-        return func(self, str(key), *args, **kwargs)
-    return _
+class StrModel(str, metaclass=OutputOfMyClass):
+    inc_string = "£"
+    fix_string = "F" + inc_string
+    path_string = "$"
+    regex_links = re.compile(r"(<<([\w\. ]+)>>)")
+
+    def replace_links(self, dyct) -> Any:
+        ret = self
+        for groups in self.regex_links.finditer(self):
+            # groups.group(0) contient l'intégralité du lien avec les < >
+            # groups.group(2) ne contient que le lien à proprement parlé
+            strref_id = groups.group(2).strip(" ")
+            new_v = dyct[strref_id]
+
+            if isinstance(new_v, str):
+                # application de replace_links sur le résultat trouvé
+                new_v = self.__class__(new_v).replace_links(dyct)
+                # sauvegarde dans dyct pour éviter de répéter la procédure
+                dyct[strref_id] = new_v
+            elif self.regex_links.fullmatch(self):
+                # renvoie un autre type que str
+                ret = new_v
+                continue
+            else:
+                # converti en str pour être intégré au reste du texte
+                new_v = str(new_v)
+
+            ret = ret.replace(groups.group(0), new_v, 1)
+
+        return ret
+
+    def replace_fix_string(self) -> "StrModel":
+        splited_str = self.split(self.fix_string)
+        ret = splited_str[0]
+        for index, txt in enumerate(splited_str[1:]):
+            ret = (
+                ret
+                + Dyct.fix_string
+                + Dyct.attr_split_string
+                + str(index).zfill(8)
+                + txt
+            )
+
+        return ret
+
+    def replace_inc_string(self) -> "StrModel":
+        """
+        Permet d'unicifier un attribut en remplacant une chaîne de caractère par un identifiant sans avoir besoin de connaître sa valeur.
+        Notamment utilisé par les 'fix'.
+        """
+        splited_str = self.split(self.inc_string)
+        ret = splited_str[0]
+        # ~dynamic join
+        for index, txt in enumerate(splited_str[1:]):
+            ret = ret + str(index).zfill(8) + txt
+
+        return ret
+
+    def replace_path_string(self, patchpath: str) -> "StrModel":
+        return self.replace(self.path_string, f"{patchpath}.")
 
 
 class Dyct(dict):
     _first_instance = None
-    regex_links_in_str = re.compile(r"(<<([\w\. ]+)>>)")
     heritage_string = "<"
     attr_split_string = "."
     fix_string = "__fixs"
@@ -150,7 +184,7 @@ class Dyct(dict):
 
     def fix_me(self) -> None:
         """
-        self["fixs"]["fix_id"]["fix_keys|method?"] = fix_value
+        self["__fixs"]["fix_id"]["fix_keys|method?"] = fix_value
         """
         fixs = self.get(self.fix_string)
         if not isinstance(fixs, dict):
@@ -161,24 +195,15 @@ class Dyct(dict):
                 self.update_values_with_operator(fix_contents)
 
     def resolve_links(self) -> None:
-        def resolve_links_in_str(text: str) -> str:
-            dialogs = re.split(self.regex_links_in_str, text)
-            for index, content_id in enumerate(dialogs[2::3]):
-                content_id = content_id.strip()
-                content_value = self[content_id]
-                if isinstance(content_value, str):
-                    content_value = resolve_links_in_str(content_value) or ""
-                    self[content_id] = content_value
+        for k, v in self.items():
+            if isinstance(v, str):
+                self[k] = StrModel(v).replace_links(self._first_instance)
+            elif isinstance(v, dict):
+                # Provisoire pour issue #5
+                if isinstance(v, Dyct):
+                    v.resolve_links()
                 else:
-                    # TODO: problème si type !str, mais dans ce cas, plus possible de faire un join
-                    pass
-                dialogs[index * 3 + 1] = ""
-                dialogs[index * 3 + 2] = content_value
-            return "".join(dialogs)
-
-        txt = resolve_links_in_str(json.dumps(self))
-        self.clear()
-        self.update(json.loads(txt))
+                    Dyct(v).resolve_links()
 
     def update_values_with_operator(self, other: dict) -> None:
         """
@@ -200,6 +225,29 @@ class Dyct(dict):
                     value_origin = self.get(k, type(v)())
                     v = apply_operator(value_origin, v, ope)
                 self[k] = v
+
+
+operator_to_method = {
+    "+": "__add__",
+    "-": "__sub__",
+    "/": "__truediv__",
+    "*": "__mul__",
+    "&": "__and__",
+    ">=": "__ge__",
+    ">": "__gt__",
+    "<=": "__le__",
+    "<": "__lt__",
+    "%": "__mod__",
+    "|": "__or__",
+    "^": "__xor__",
+    "!=": "__ne__",
+    "==": "__eq__",
+    "//": "__floordiv__",
+    "~": "__invert__",
+    "<<": "__lshift__",
+    ">>": "__rshift__",
+    "**": "__pow__",
+}
 
 
 def apply_operator(source: Any, value: Any, ope: str) -> Any:
