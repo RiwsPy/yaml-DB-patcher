@@ -25,12 +25,16 @@ def test_key_disaggregation_autoupdate_level2(dyct):
     assert dyct == {"test": {"name": "Roger", "hp": {"max": 1}}}
 
 
-"""
 def test_extends_level1(dyct):
     dyct.update({"source": {"name": "test"}, "1": {"<": "source"}})
     dyct.extends()
     assert dyct["source"] == dyct["1"]
-"""
+
+
+def test_extends_level2(dyct):
+    dyct.update({"source": {"name": "test"}, "1": {"name": {"<": "source.name"}}})
+    dyct.extends()
+    assert dyct["source"] == dyct["1"]
 
 
 def test_resolve_links_level1(dyct):
@@ -40,14 +44,26 @@ def test_resolve_links_level1(dyct):
     assert dyct == expected_value
 
 
-"""
-# Provisoire #5
 def test_resolve_links_level2(dyct):
     dyct.update({"person": {"name": "Loulou"}, "other": {"name": "<<person.name>>"}})
     dyct.resolve_links()
     expected_value = {"person": {"name": "Loulou"}, "other": {"name": "Loulou"}}
     assert dyct == expected_value
-"""
+
+
+def test_resolve_links_double(dyct):
+    dyct.update({"person": {"name": "Loulou"}, "other": {"name": "<<person.name>><<person.name>>"}})
+    dyct.resolve_links()
+    expected_value = {"name": "LoulouLoulou"}
+    assert dyct["other"] == expected_value
+
+
+def test_resolve_links_imbr(dyct):
+    dyct.update({"person": {"name": "Loulou"}, "other": {"hp": "<<<<person.name>>.hp>>"}, "Loulou": {"hp": 2}})
+    dyct.resolve_links()
+    expected_value = {"other": {"hp": 2}}
+    assert dyct["other"] == {"hp": 2}
+
 
 def test_apply_operator():
     assert apply_operator(1, 2, "+") == 3

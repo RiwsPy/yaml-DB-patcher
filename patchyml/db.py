@@ -14,10 +14,14 @@ class StrModel(str, metaclass=OutputOfMyClass):
 
     def replace_links(self, dyct) -> Any:
         ret = self
+        case_realized = set()
         for groups in self.regex_links.finditer(self):
             # groups.group(0) contient l'intégralité du lien avec les < >
             # groups.group(2) ne contient que le lien à proprement parlé
             strref_id = groups.group(2).strip(" ")
+            if strref_id in case_realized:  # déjà écrasé par le ret.replace(groups.group(0), new_v)
+                continue
+            case_realized.add(strref_id)
             new_v = dyct[strref_id]
 
             if isinstance(new_v, str):
@@ -33,7 +37,11 @@ class StrModel(str, metaclass=OutputOfMyClass):
                 # converti en str pour être intégré au reste du texte
                 new_v = str(new_v)
 
-            ret = ret.replace(groups.group(0), new_v, 1)
+            ret = ret.replace(groups.group(0), new_v)
+
+        # 6: résolution des liens imbriqués
+        if ret is not self and isinstance(ret, self.__class__):
+            ret = ret.replace_links(dyct)
 
         return ret
 
@@ -203,7 +211,9 @@ class Dyct(dict):
                 if isinstance(v, Dyct):
                     v.resolve_links()
                 else:
-                    Dyct(v).resolve_links()
+                    v = Dyct(v)
+                    v.resolve_links()
+                    self[k] = v
 
     def update_values_with_operator(self, other: dict) -> None:
         """
