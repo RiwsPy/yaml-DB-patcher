@@ -11,6 +11,7 @@ class StrModel(str, metaclass=OutputOfMyClass):
     fix_string = "F" + inc_string
     path_string = "$"
     regex_links = re.compile(r"(<<([\w\. ]+)>>)")
+    regex_extension = re.compile(r".[yY][aA]?[mM][lL]$")
 
     def replace_links(self, dyct) -> Any:
         ret = self
@@ -19,12 +20,14 @@ class StrModel(str, metaclass=OutputOfMyClass):
             # groups.group(0) contient l'intégralité du lien avec les < >
             # groups.group(2) ne contient que le lien à proprement parlé
             strref_id = groups.group(2).strip(" ")
-            if strref_id in case_realized:  # déjà écrasé par le ret.replace(groups.group(0), new_v)
+            if (
+                strref_id in case_realized
+            ):  # déjà écrasé par le ret.replace(groups.group(0), new_v)
                 continue
             case_realized.add(strref_id)
-            new_v = dyct[strref_id]
+            new_v = dyct.get(strref_id, "")  # "" par défaut
 
-            if isinstance(new_v, str):
+            if new_v and isinstance(new_v, str):
                 # application de replace_links sur le résultat trouvé
                 new_v = self.__class__(new_v).replace_links(dyct)
                 # sauvegarde dans dyct pour éviter de répéter la procédure
@@ -73,7 +76,10 @@ class StrModel(str, metaclass=OutputOfMyClass):
         return ret
 
     def replace_path_string(self, patchpath: str) -> "StrModel":
-        return self.replace(self.path_string, f"{patchpath}.")
+        def remove_extension(text: str) -> str:
+            return self.regex_extension.sub("", text)
+
+        return self.replace(self.path_string, f"{remove_extension(patchpath)}.")
 
 
 class Dyct(dict):

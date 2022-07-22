@@ -29,7 +29,7 @@ class YamlReader:
         self._data = (
             self.str_model(self._data).replace_fix_string()
             # .replace_inc_string()
-            .replace_path_string(self.patchpath)
+            # .replace_path_string(self.patchpath)
         )
 
     @property
@@ -65,13 +65,19 @@ class YamlReader:
                 ) as file_order:
                     order_files = [line.rstrip("\n") for line in file_order.readlines()]
 
-            for file in order_files:
-                if file not in self.get_ignore_files():
-                    with open(os.path.join(self._dirname, file), "r") as file_content:
-                        read_file += file_content.read()
+            for filename in order_files:
+                if filename not in self.get_ignore_files():
+                    with open(os.path.join(self._dirname, filename), "r") as file:
+                        file_content = self.str_model(file.read()).replace_path_string(
+                            (self.patchpath + "." + filename)
+                        )
+                        read_file += file_content
         else:  # file
-            with open(self.abspath, "r") as file_content:
-                read_file += file_content.read()
+            with open(self.abspath, "r") as file:
+                file_content = self.str_model(file.read()).replace_path_string(
+                    (self.patchpath + "." + path)
+                )
+                read_file += file_content
 
         self._data = read_file
 
@@ -86,6 +92,7 @@ class YamlManager:
     is_first = False
     reader_cls = YamlReader
     db_directory = "db"
+    paths_directory = "patchs"
     _data = None
 
     def __init__(self, **kwargs):
@@ -96,6 +103,7 @@ class YamlManager:
         file_content = ""
         reader = self.reader_cls()
         for path in paths:
+            path = self.paths_directory + "/" + path
             if not os.path.exists(path):
                 print(f"{path} not found.")
             else:

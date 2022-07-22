@@ -14,11 +14,13 @@ Tout en conservant la possibilité d'annuler un patch ou même de patcher un pat
 
 L'idée est de partir d'une multitude de fichiers yaml, de les assembler de façon ordonnée afin de générer un fichier unique fichier yaml (ou json) qui sera exploité par l'outil.
 
+L'idée c'est qu'un utilisateur sans connaissances avancées puisse modifier sa base comme il l'entend, la partager et y appliquer les patchs des autres utilisateurs.
+
 ## En construction
 
 
 ```
-from inc.base import YamlManager
+from patchyml import YamlManager
 
 cls = YamlManager()
 cls.load("_base/")
@@ -88,7 +90,7 @@ villager:
 
 ```
 
-### Fix++
+### Fix|+
 L'ajout d'un opérateur est possible (pas encore stable) :
 ```
 human:
@@ -107,4 +109,38 @@ human:
   atk: 1
   hp: 36
   level: 3
+```
+
+## Namespace $
+
+Afin de réduire facilement les conflits lors du chargements des différents patchs, il est préférable de namespacer les différentes entrées dans les fichiers yaml.\
+Sinon deux entrées au même nom s'écraseront occasionnant des effets parfois indésirables.\
+Pour éviter de créer des noms à rallonge, il est conseillé d'utiliser le caractère **$**.
+```
+# monpatch/d.yaml
+$0: entrée0
+$1: entrée1
+$fake0: <<$0>>
+```
+Devient
+```
+monpatch:
+    d:
+        0: entrée0
+        1: entrée1
+        fake0: entrée0
+```
+
+Cela n'est cependant pas sans conséquence. Comme **$** peut se trouver aussi bien dans les clés que dans les valeurs, tous les caractères **$** sont remplacés.\
+Il est donc **fortement déconseillé d'utiliser le caractère $ en dehors de cet usage.**
+
+```
+# monpatch/d.yaml
+$0: Seulement 10$ ? Une aubaine !
+```
+Devient
+```
+monpatch:
+    d:
+        0: Seulement 10monpatch.d ? Une aubaine !
 ```
