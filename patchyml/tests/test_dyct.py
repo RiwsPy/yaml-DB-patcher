@@ -37,6 +37,12 @@ def test_extends_level2(dyct):
     assert dyct["source"] == dyct["1"]
 
 
+def test_extends_empty(dyct):
+    dyct.update({"": "test", "1": {"name": {"<": "   "}}})
+    dyct.extends()
+    assert dyct["1"] == {"name": {}}
+
+
 def test_resolve_links_level1(dyct):
     dyct.update({"0": "value0", "1": "<<0>>1"})
     dyct.resolve_links()
@@ -52,17 +58,50 @@ def test_resolve_links_level2(dyct):
 
 
 def test_resolve_links_double(dyct):
-    dyct.update({"person": {"name": "Loulou"}, "other": {"name": "<<person.name>><<person.name>>"}})
+    dyct.update(
+        {
+            "person": {"name": "Loulou"},
+            "other": {"name": "<<person.name>><<person.name>>"},
+        }
+    )
     dyct.resolve_links()
     expected_value = {"name": "LoulouLoulou"}
     assert dyct["other"] == expected_value
 
 
 def test_resolve_links_imbr(dyct):
-    dyct.update({"person": {"name": "Loulou"}, "other": {"hp": "<<<<person.name>>.hp>>"}, "Loulou": {"hp": 2}})
+    dyct.update(
+        {
+            "person": {"name": "Loulou"},
+            "other": {"hp": "<<<<person.name>>.hp>>"},
+            "Loulou": {"hp": 2},
+        }
+    )
     dyct.resolve_links()
-    expected_value = {"other": {"hp": 2}}
-    assert dyct["other"] == {"hp": 2}
+    expected_value = {"hp": 2}
+    assert dyct["other"] == expected_value
+
+
+"""
+def test_dyct_update_is_dyct(dyct):
+    dyct.update({"test": {"1": "2"}})
+    assert type(dyct["test"]) is type(dyct)
+
+
+# Non implanté
+def test_resolve_links_in_key(dyct):
+    dyct.update({"0": 0, "01": 1, "0<<01>>2": 2})
+    dyct.resolve_links()
+    expected_value = {"0": 0, "01": 1, "012": 2}
+    assert dyct == expected_value
+
+
+def test_resolve_links_in_key_imbr(dyct):
+    dyct.update({"0": 0, "01": {"test": 1}, "0<<01.test>>2": 2})
+    dyct.resolve_links()
+    expected_value = {"0": 0, "01": {"test": 1}, "012": 2}
+    assert dyct == expected_value
+"""
 
 
 def test_apply_operator():

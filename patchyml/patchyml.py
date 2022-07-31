@@ -92,7 +92,7 @@ class YamlManager:
     is_first = False
     reader_cls = YamlReader
     db_directory = "db"
-    paths_directory = "patchs"
+    patchs_directory = "patchs"
     _data = None
 
     def __init__(self, **kwargs):
@@ -103,20 +103,21 @@ class YamlManager:
         file_content = ""
         reader = self.reader_cls()
         for path in paths:
-            path = self.paths_directory + "/" + path
-            if not os.path.exists(path):
-                print(f"{path} not found.")
-            else:
-                reader.load(path)
-                reader.convert()
-                file_content += reader.data
+            patch_path = self.patchs_directory + "/" + path
+            if not os.path.exists(patch_path):
+                print(f"{patch_path} not found.")
+                continue
+
+            reader.load(patch_path)
+            reader.convert()
+            file_content += reader.data
 
         data = Dyct(yaml.safe_load(file_content), is_first=self.is_first)
         data.convert()
         self._data = data
 
     @property
-    def data(self):
+    def data(self) -> Dyct:
         return self._data
 
     @dump_file
@@ -127,7 +128,8 @@ class YamlManager:
     @dump_file
     def dump_yaml(self, filename, **kwargs) -> None:
         with open(self.output_basename(filename), "w") as file:
+            # hack pour convertir l'objet en dictionnaire
             yaml.dump(json.loads(json.dumps(self.data)), file, **kwargs)
 
-    def output_basename(self, filename: str):
+    def output_basename(self, filename: str) -> str:
         return os.path.join(BASE_DIR, self.db_directory, filename)

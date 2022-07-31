@@ -1,6 +1,7 @@
 import re
-from typing import Any
 import operator
+from typing import Any
+from copy import deepcopy
 
 from .utils import OutputOfMyClass, Breaker
 from .decorators import key_is_str
@@ -87,6 +88,7 @@ class Dyct(dict):
     heritage_string = "<"
     attr_split_string = "."
     fix_string = "__fixs"
+    regex_inherit_split = re.compile(" +")
 
     def __new__(cls, *args, **kwargs):
         obj_id = super().__new__(cls, *args, **kwargs)
@@ -149,16 +151,24 @@ class Dyct(dict):
             if not isinstance(v, dict):
                 continue
 
+            value_expended = None
             if self.heritage_string in v:
                 try:
                     value_expended = self.__class__()
                     for key, value in v.items():
+                        # ajout des clés présentes n'étant pas le caractère d'héritage
                         if key != self.heritage_string:
                             value_expended[key] = value
                             continue
 
                         # héritage multiple <: cls1 cls2 cls3
-                        for entity in value.split(" "):
+                        inherited_entities = self.regex_inherit_split.split(value)
+                        for index, entity in enumerate(inherited_entities):
+                            # on passe les héritages vides (espaces)
+                            # seule la dernière instance des héritages identiques est prise en compte
+                            if not entity or entity in inherited_entities[index+1:]:
+                                continue
+
                             value_expansion = self._first_instance.get(entity, dict())
                             if isinstance(value_expansion, dict):
                                 value_expended.update(value_expansion)
@@ -173,11 +183,13 @@ class Dyct(dict):
 
             self[k] = value_expended
 
+        """
         for k, v in self.items():
             if isinstance(v, dict):
                 dict_convert = self.__class__(v)
                 dict_convert.extends()
                 self[k] = dict_convert
+        """
 
     def key_disaggregation(self) -> None:
         """
@@ -204,12 +216,30 @@ class Dyct(dict):
         if not isinstance(fixs, dict):
             return
 
+        # tri sur pk croissant
         for fix_id, fix_contents in sorted(fixs.items(), key=operator.itemgetter(0)):
             if isinstance(fix_contents, dict):
                 self.update_values_with_operator(fix_contents)
 
     def resolve_links(self) -> None:
+        """
+        Remplace les << X >> par la valeur correspondante dans l'instance principale
+        """
         for k, v in self.items():
+            """
+            # #8 incomplet
+            # remplacement des keys dans un premier temps
+            # for k, v in self.copy().items():
+            new_k = StrModel(k).replace_links(self._first_instance)
+            if k != new_k:
+                new_d = Dyct({k: v})
+                new_d.key_disaggregation()
+                self[new_k] = v
+                del self[k]
+                k = new_k
+            """
+
+            # remplacement des values dans un second temps
             if isinstance(v, str):
                 self[k] = StrModel(v).replace_links(self._first_instance)
             elif isinstance(v, dict):
