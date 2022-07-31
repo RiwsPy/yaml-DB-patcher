@@ -264,12 +264,13 @@ class Dyct(dict):
             if isinstance(v, dict) and isinstance(self.get(k), dict):
                 self[k].update_values_with_operator(other[k])
             else:
-                key_without_ope, _, ope = k.rpartition("|")
+                key_without_ope, _, ope = k.partition("|")
                 if key_without_ope and ope:
                     k = key_without_ope
                     # valeur par défaut = valeur par défaut du type(v)
                     value_origin = self.get(k, type(v)())
                     v = apply_operator(value_origin, v, ope)
+
                 self[k] = v
 
 
