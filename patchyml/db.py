@@ -137,13 +137,14 @@ class Dyct(dict):
     def convert(self) -> None:
         self.key_disaggregation()
         self.extends()
+        # resolve_links à placer avant fix_me si des fixs appellent des liens
+        self.resolve_links()
         if self is self._first_instance:
             self.fix_me()
             try:
                 del self[self.fix_string]
             except KeyError:
                 pass
-        self.resolve_links()
 
     def extends(self) -> None:
         # applique les différents héritages
@@ -266,6 +267,7 @@ class Dyct(dict):
             else:
                 key_without_ope, _, ope = k.partition("|")
                 if key_without_ope and ope:
+                    breakpoint()
                     k = key_without_ope
                     # valeur par défaut = valeur par défaut du type(v)
                     value_origin = self.get(k, type(v)())
