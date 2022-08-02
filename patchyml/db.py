@@ -129,8 +129,10 @@ class Dyct(dict, metaclass=OutputOfMyClass):
             else:
                 sub_dict[attrs[-1]] = value
 
-    def update(self, other) -> None:
-        other = self.__class__(other)
+    def update(self, *others: dict) -> None:
+        if not others:
+            return None
+        other = self.__class__(*others)
         other.key_disaggregation()
         super().update(other)
 
