@@ -1,4 +1,6 @@
 .pytest_cache/
 __pycache__/
 .idea/
-notes.txt
+.coverage
+patchs/_base/
+db/

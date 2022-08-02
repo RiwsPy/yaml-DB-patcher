@@ -1,36 +1,27 @@
 {
  "_base": {
+  "simple": {
+   "person": {
+    "name": "Loulou"
+   },
+   "other": {
+    "hp": 2
+   },
+   "Loulou": {
+    "name": "Loulou",
+    "mangeur": {
+     "name": "Loulou"
+    },
+    "hp": 2
+   },
+   "example": {
+    "value": 9
+   }
+  },
   "d": {
-   "0": "Nunuche"
-  },
-  "CRE": {
-   "char": "C"
-  },
-  "Ii": "Nunuche Youplaboum Humshtakamacha",
-  "olo": "Youplaboum Humshtakamacha",
-  "ikimaste": "Humshtakamacha"
- },
- "~PLAYER": {
-  "char": "C",
-  "name": "Nunuche Youplaboum Humshtakamacha",
-  "gender": 0,
-  "reaction": 240,
-  "color": "<_color.WHITE>",
-  "script": "_base.script.cre.PLAYER",
-  "slot": {
-   "bag": [
-    "_base.POTN001",
-    "_base.KEY001",
-    "_base.SCRL001",
-    "_base.ARMOR001",
-    "_base.SCRL001"
-   ],
-   "bag2": [
-    "_base.POTN001"
-   ]
-  },
-  "level": 1,
-  "test": 1,
-  "is_container": true
+   "i": "_base.simple",
+   "0": "Nunuche",
+   "1": "Loulou est ici !"
+  }
  }
 }

@@ -2,6 +2,7 @@ import yaml
 import json
 import os
 from pathlib import Path
+from typing import Set, List
 
 from .decorators import dump_file
 from .db import Dyct, StrModel
@@ -26,11 +27,7 @@ class YamlReader:
         return self._data
 
     def convert(self) -> None:
-        self._data = (
-            self.str_model(self._data).replace_fix_string()
-            # .replace_inc_string()
-            # .replace_path_string(self.patchpath)
-        )
+        self._data = self.str_model(self._data).replace_fix_string()
 
     @property
     def abspath(self) -> str:
@@ -51,41 +48,51 @@ class YamlReader:
         Lit le fichier de l'instance ou tous les fichiers présents dans le dossier, les concatènent et les renvoient
         A ce stade, le contenu n'est pas encore interprété
 
-        Attention: actuellement, le Yaml n'a pas (encore ?) de mimetype officiel
+        Attention: le Yaml n'a pas (encore ?) de mimetype officiel
         """
+
+        def file_content(file_path, file_name) -> str:
+            with open(file_path, "rt") as file:
+                content = self.str_model(file.read()).replace_path_string(
+                    f"{self.patchpath}.{file_name}"
+                )
+            return content
+
         self._dirname = os.path.join(BASE_DIR, os.path.dirname(path))
         self._basename = os.path.basename(path)
 
-        read_file = ""
-        if os.path.isdir(self.abspath):  # repository
-            order_files = os.listdir(self._dirname)
-            if self.file_order in order_files:
-                with open(
-                    os.path.join(self._dirname, self.file_order), "r"
-                ) as file_order:
-                    order_files = [line.rstrip("\n") for line in file_order.readlines()]
-
-            for filename in order_files:
+        content_file = ""
+        if os.path.isdir(self.abspath):  # directory
+            for filename in self.get_order_files():
                 if filename not in self.get_ignore_files():
-                    with open(os.path.join(self._dirname, filename), "r") as file:
-                        file_content = self.str_model(file.read()).replace_path_string(
-                            (self.patchpath + "." + filename)
-                        )
-                        read_file += file_content
+                    content_file += file_content(
+                        os.path.join(self._dirname, filename), filename
+                    )
         else:  # file
-            with open(self.abspath, "r") as file:
-                file_content = self.str_model(file.read()).replace_path_string(
-                    (self.patchpath + "." + path)
-                )
-                read_file += file_content
+            filename = path
+            content_file += file_content(self.abspath, filename)
 
-        self._data = read_file
+        self._data = content_file
 
-    def get_ignore_files(self) -> set:
-        ret = self.ignore_files
+    def get_ignore_files(self) -> Set[str]:
+        ret = set(self.ignore_files)
         if self.file_order:
             ret.add(self.file_order)
         return ret
+
+    def get_order_files(self) -> List[str]:
+        if self._dirname == "":
+            print("Attribut _dirname non initialisé, méthode .load() activée ?")
+            return []
+
+        order_files = os.listdir(self._dirname)
+        if self.file_order in order_files:
+            with open(
+                    os.path.join(self._dirname, self.file_order), "rt"
+            ) as file_order:
+                order_files = file_order.read().splitlines()
+
+        return order_files
 
 
 class YamlManager:

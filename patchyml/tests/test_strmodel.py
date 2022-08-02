@@ -14,13 +14,6 @@ def test_output_type2(strModel):
     assert type(txt) is type(strModel)
 
 
-def test_replace_inc_string(strModel):
-    inc_string = strModel.inc_string
-    txt = strModel + "test" + inc_string + "test" + inc_string + "a"
-    expected_value = "test00000000test00000001a"
-    assert txt.replace_inc_string() == expected_value
-
-
 def test_replace_path_to_absolute(strModel):
     txt = strModel + f"{strModel.path_string}loulou"
     expected_value = "_base.loulou"

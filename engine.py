@@ -1,5 +1,8 @@
-from inc.base import YamlReader
+from patchyml import YamlManager
 
-if __name__ == '__main__':
-    cls = YamlReader("_base/cre.yaml")
-    cls.dump(force=True)
+
+if __name__ == "__main__":
+    cls = YamlManager()
+    cls.load("_base/")
+    cls.dump_yaml("default.yaml")
+    cls.dump_json("default.json", ensure_ascii=True, indent=1)

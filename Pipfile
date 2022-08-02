@@ -8,6 +8,7 @@ verify_ssl = true
 [packages]
 pyyaml = "*"
 pytest = "*"
+pytest-cov = "*"
 
 [requires]
 python_version = "3.8"

@@ -1,18 +1,16 @@
 import re
 import operator
 from typing import Any
-from copy import deepcopy
 
 from .utils import OutputOfMyClass, Breaker
 from .decorators import key_is_str
 
 
 class StrModel(str, metaclass=OutputOfMyClass):
-    inc_string = "£"
-    fix_string = "F" + inc_string
+    fix_string = "F£"
     path_string = "$"
     regex_links = re.compile(r"(<<([\w\. ]+)>>)")
-    regex_extension = re.compile(r".[yY][aA]?[mM][lL]$")
+    regex_yaml_extension = re.compile(r".[yY][aA]?[mM][lL]$")
 
     def replace_links(self, dyct) -> Any:
         ret = self
@@ -21,20 +19,21 @@ class StrModel(str, metaclass=OutputOfMyClass):
             # groups.group(0) contient l'intégralité du lien avec les < >
             # groups.group(2) ne contient que le lien à proprement parlé
             strref_id = groups.group(2).strip(" ")
-            if (
-                strref_id in case_realized
-            ):  # déjà écrasé par le ret.replace(groups.group(0), new_v)
+            # déjà écrasé par le ret.replace(groups.group(0), new_v)
+            if strref_id in case_realized:
                 continue
-            case_realized.add(strref_id)
-            new_v = dyct.get(strref_id, "")  # "" par défaut
 
-            if new_v and isinstance(new_v, str):
+            case_realized.add(strref_id)
+            new_v = dyct.get(strref_id)
+            if new_v is None:
+                new_v = ""
+            elif isinstance(new_v, str):
                 # application de replace_links sur le résultat trouvé
                 new_v = self.__class__(new_v).replace_links(dyct)
                 # sauvegarde dans dyct pour éviter de répéter la procédure
                 dyct[strref_id] = new_v
             elif self.regex_links.fullmatch(self):
-                # renvoie un autre type que str
+                # lien strict + renvoie un type autre type que str
                 ret = new_v
                 continue
             else:
@@ -63,24 +62,11 @@ class StrModel(str, metaclass=OutputOfMyClass):
 
         return ret
 
-    def replace_inc_string(self) -> "StrModel":
-        """
-        Permet d'unicifier un attribut en remplacant une chaîne de caractère par un identifiant sans avoir besoin de connaître sa valeur.
-        Notamment utilisé par les 'fix'.
-        """
-        splited_str = self.split(self.inc_string)
-        ret = splited_str[0]
-        # ~dynamic join
-        for index, txt in enumerate(splited_str[1:]):
-            ret = ret + str(index).zfill(8) + txt
-
-        return ret
-
     def replace_path_string(self, patchpath: str) -> "StrModel":
-        def remove_extension(text: str) -> str:
-            return self.regex_extension.sub("", text)
+        def remove_yaml_extension(text: str) -> str:
+            return self.regex_yaml_extension.sub("", text)
 
-        return self.replace(self.path_string, f"{remove_extension(patchpath)}.")
+        return self.replace(self.path_string, f"{remove_yaml_extension(patchpath)}.")
 
 
 class Dyct(dict, metaclass=OutputOfMyClass):
@@ -101,6 +87,7 @@ class Dyct(dict, metaclass=OutputOfMyClass):
         super().__init__(*args, **kwargs)
 
     @key_is_str
+    # le yaml étant plus permissif que le json, les clés sont converties en str
     def __getitem__(self, key: str) -> Any:
         # self["a.b"] <==> self["a"]["b"]
         if self.attr_split_string not in key:
@@ -130,6 +117,8 @@ class Dyct(dict, metaclass=OutputOfMyClass):
                 sub_dict[attrs[-1]] = value
 
     def update(self, *others: dict) -> None:
+        # TODO: faire le niveau2: application des fixs et des héritages
+        # ou bloquer l'utilisation de cette méthode !
         if not others:
             return None
         other = self.__class__(*others)
@@ -145,7 +134,7 @@ class Dyct(dict, metaclass=OutputOfMyClass):
     def convert(self) -> None:
         self.key_disaggregation()
         self.extends()
-        # resolve_links à placer avant fix_me si des fixs appellent des liens
+        # resolve_links placé avant fix_me car les fixs peuvent appeler des liens
         self.resolve_links()
         if self is self._first_instance:
             self.fix_me()
@@ -175,7 +164,7 @@ class Dyct(dict, metaclass=OutputOfMyClass):
                         for index, entity in enumerate(inherited_entities):
                             # on passe les héritages vides (espaces)
                             # seule la dernière instance des héritages identiques est prise en compte
-                            if not entity or entity in inherited_entities[index+1:]:
+                            if not entity or entity in inherited_entities[index + 1 :]:
                                 continue
 
                             value_expansion = self._first_instance.get(entity, dict())
@@ -251,15 +240,9 @@ class Dyct(dict, metaclass=OutputOfMyClass):
             # remplacement des values dans un second temps
             if isinstance(v, str):
                 self[k] = StrModel(v).replace_links(self._first_instance)
-            elif isinstance(v, dict):
-                # Provisoire pour issue #5
-                if isinstance(v, Dyct):
-                    v.resolve_links()
-                else:
-                    print("heuuu")
-                    v = Dyct(v)
-                    v.resolve_links()
-                    self[k] = v
+            elif isinstance(v, Dyct):
+                v.resolve_links()
+                self[k] = v
 
     def update_values_with_operator(self, other: dict) -> None:
         """
