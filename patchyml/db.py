@@ -83,12 +83,12 @@ class StrModel(str, metaclass=OutputOfMyClass):
         return self.replace(self.path_string, f"{remove_extension(patchpath)}.")
 
 
-class Dyct(dict):
+class Dyct(dict, metaclass=OutputOfMyClass):
     _first_instance = None
     heritage_string = "<"
     attr_split_string = "."
     fix_string = "__fixs"
-    regex_inherit_split = re.compile(" +")
+    regex_inherit_split = re.compile(r" +")
 
     def __new__(cls, *args, **kwargs):
         obj_id = super().__new__(cls, *args, **kwargs)
@@ -124,9 +124,15 @@ class Dyct(dict):
         else:
             if sub_dict is self:  # ~ len(attrs) == 1
                 # update_values ??
+                # permet d'éviter la boucle infinie
                 super().__setitem__(key, value)
             else:
                 sub_dict[attrs[-1]] = value
+
+    def update(self, other) -> None:
+        other = self.__class__(other)
+        other.key_disaggregation()
+        super().update(other)
 
     def get(self, key: str, default=None) -> Any:
         try:
@@ -207,7 +213,7 @@ class Dyct(dict):
             structured_dict[k] = v
 
         self.clear()
-        self.update(structured_dict)
+        super().update(structured_dict)
 
     def fix_me(self) -> None:
         """
@@ -248,6 +254,7 @@ class Dyct(dict):
                 if isinstance(v, Dyct):
                     v.resolve_links()
                 else:
+                    print("heuuu")
                     v = Dyct(v)
                     v.resolve_links()
                     self[k] = v
@@ -267,7 +274,6 @@ class Dyct(dict):
             else:
                 key_without_ope, _, ope = k.partition("|")
                 if key_without_ope and ope:
-                    breakpoint()
                     k = key_without_ope
                     # valeur par défaut = valeur par défaut du type(v)
                     value_origin = self.get(k, type(v)())

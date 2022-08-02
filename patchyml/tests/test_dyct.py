@@ -1,6 +1,17 @@
 from patchyml.db import apply_operator
 
 
+def test_update_level1(dyct):
+    dyct.update({"level1": 1})
+    assert dyct == {"level1": 1}
+
+
+def test_update_level2(dyct):
+    dyct.update({"level1": {"level2": 1}})
+    assert dyct == {"level1": {"level2": 1}}
+    assert isinstance(dyct["level1"], type(dyct))
+
+
 def test_key_disaggregation_level1(dyct):
     dyct.update({"cre.PLAYER": {"name": "player_name", "con": 1}})
     dyct.key_disaggregation()
@@ -82,12 +93,23 @@ def test_resolve_links_imbr(dyct):
     assert dyct["other"] == expected_value
 
 
-"""
+def test_set_dict(dyct):
+    dyct["test"] = {"ho": 1}
+    assert type(dyct["test"]) == type(dyct)
+
+
+def test_set_dict_level2(dyct):
+    dyct["test.2"] = {"ho": 1}
+    assert type(dyct["test"]["2"]) == type(dyct)
+
+
+# 5
 def test_dyct_update_is_dyct(dyct):
     dyct.update({"test": {"1": "2"}})
     assert type(dyct["test"]) is type(dyct)
 
 
+"""
 # Non implanté
 def test_resolve_links_in_key(dyct):
     dyct.update({"0": 0, "01": 1, "0<<01>>2": 2})
