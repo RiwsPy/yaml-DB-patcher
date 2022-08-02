@@ -30,7 +30,7 @@ cls.dump_yaml("default.yaml")
 
 ### Exemples :
 
-## Lien :
+## Lien << >>
 ```
 t0: test0
 t1: << t0 >>1
@@ -41,7 +41,7 @@ t0: test0
 t1: test01
 ```
 
-## Héritage :
+## Héritage <:
 ```
 human:
     level: 1
@@ -64,7 +64,7 @@ villager:
   name: Villageois
 ```
 
-## Fix :
+## Fix F£
 ```
 human:
     level: 1
@@ -90,17 +90,18 @@ villager:
 
 ```
 
-### Fix|+
-L'ajout d'un opérateur est possible (pas encore stable) :
+### Fix+ |+
+L'ajout d'un opérateur est possible (pas encore stable).\
+Il suffit de rajouter l'opérateur après le caractère | à la fin de la clé.
 ```
 human:
     level: 1
     hp: 12
 
 F£.human:
-    level|+: 2
-    hp|*: 3
-    atk|+: 1
+    level|+: 2  # level +2
+    hp|*: 3  # hp *3
+    atk|+: 1  # atk +1
 ```
 
 Devient
@@ -110,6 +111,7 @@ human:
   hp: 36
   level: 3
 ```
+L'attribut atk n'existant pas, il est créé avec la valeur par défaut (ici 0, car 1 est de type int) puis le fix lui est appliqué (0 + 1 = 1).
 
 ## Namespace $
 
