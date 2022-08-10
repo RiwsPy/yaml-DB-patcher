@@ -49,17 +49,11 @@ class StrModel(str, metaclass=OutputOfMyClass):
         return ret
 
     def replace_fix_string(self) -> "StrModel":
+        fix_fullstring = Dyct.fix_string + Dyct.attr_split_string
         splited_str = self.split(self.fix_string)
         ret = splited_str[0]
         for index, txt in enumerate(splited_str[1:]):
-            ret = (
-                ret
-                + Dyct.fix_string
-                + Dyct.attr_split_string
-                + str(index).zfill(8)
-                + txt
-            )
-
+            ret = ret + fix_fullstring + str(index).zfill(8) + txt
         return ret
 
     def replace_path_string(self, patchpath: str) -> "StrModel":

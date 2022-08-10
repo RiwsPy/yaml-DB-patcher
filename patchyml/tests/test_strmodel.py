@@ -21,7 +21,14 @@ def test_replace_path_to_absolute(strModel):
     assert txt.replace_path_string("_base") == expected_value
 
 
+def test_replace_fix_string_sample(strModel, dyct):
+    txt = strModel + "test"
+    expected_value = "test"
+    assert txt.replace_fix_string() == expected_value
+    assert isinstance(txt, type(strModel))
+
+
 def test_replace_fix_string(strModel, dyct):
-    txt = strModel + f"test{strModel.fix_string}test"
-    expected_value = f"test{dyct.fix_string}.00000000test"
+    txt = strModel + f"test{strModel.fix_string}test{strModel.fix_string}"
+    expected_value = f"test{dyct.fix_string}.00000000test{dyct.fix_string}.00000001"
     assert txt.replace_fix_string() == expected_value
