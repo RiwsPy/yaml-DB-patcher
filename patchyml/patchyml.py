@@ -3,6 +3,7 @@ import json
 import os
 from pathlib import Path
 from typing import Set, List
+from mimetypes import guess_type
 
 from .decorators import dump_file
 from .db import Dyct, StrModel
@@ -13,12 +14,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 class YamlReader:
     str_model = StrModel
     file_order = "_order.ini"
-    ignore_files = set()
-    _data = None
+    ignore_files = {"__init__.py", "__pycache__"}
+    _data = ""
 
     def __init__(self, **kwargs):
         self._dirname = ""
-        self._basename = ""
         for k, v in kwargs.items():
             setattr(self, k, v)
 
@@ -29,50 +29,34 @@ class YamlReader:
     def convert(self) -> None:
         self._data = self.str_model(self._data).replace_fix_string()
 
-    @property
-    def abspath(self) -> str:
-        """
-        Renvoie le chemin absolu du fichier ou du dossier
-        """
-        return os.path.join(self._dirname, self._basename)
-
-    @property
-    def patchpath(self) -> str:
-        """
-        Renvoie le nom du fichier ou du dossier
-        """
-        return os.path.basename(os.path.abspath(self._dirname))
-
     def load(self, path: str) -> None:
         """
         Lit le fichier de l'instance ou tous les fichiers présents dans le dossier, les concatènent et les renvoient
         A ce stade, le contenu n'est pas encore interprété
-
-        Attention: le Yaml n'a pas (encore ?) de mimetype officiel
         """
 
-        def file_content(file_path, file_name) -> str:
-            with open(file_path, "rt") as file:
-                content = self.str_model(file.read()).replace_path_string(
-                    f"{self.patchpath}.{file_name}"
+        def file_content() -> str:
+            with open(self._dirname, "rt") as file:
+                patchpath = (
+                    self._dirname.replace(str(BASE_DIR) + "/", "")
+                    .partition("/")[2]
+                    .replace("/", ".")
                 )
+                content = self.str_model(file.read()).replace_path_string(patchpath)
             return content
 
-        self._dirname = os.path.join(BASE_DIR, os.path.dirname(path))
-        self._basename = os.path.basename(path)
+        self._dirname = os.path.abspath(path)
 
         content_file = ""
-        if os.path.isdir(self.abspath):  # directory
+        if os.path.isdir(path):  # directory
             for filename in self.get_order_files():
                 if filename not in self.get_ignore_files():
-                    content_file += file_content(
-                        os.path.join(self._dirname, filename), filename
-                    )
+                    self.load(os.path.join(path, filename))
         else:  # file
-            filename = path
-            content_file += file_content(self.abspath, filename)
+            if self.file_has_yaml_mimetype(self._dirname):
+                content_file += file_content()
 
-        self._data = content_file
+        self._data += content_file + "\n"
 
     def get_ignore_files(self) -> Set[str]:
         ret = set(self.ignore_files)
@@ -87,19 +71,23 @@ class YamlReader:
 
         order_files = os.listdir(self._dirname)
         if self.file_order in order_files:
-            with open(
-                    os.path.join(self._dirname, self.file_order), "rt"
-            ) as file_order:
+            with open(os.path.join(self._dirname, self.file_order), "rt") as file_order:
                 order_files = file_order.read().splitlines()
 
         return order_files
+
+    @staticmethod
+    def file_has_yaml_mimetype(path: str) -> bool:
+        # Attention: le Yaml n'a pas (encore ?) de mimetype officiel
+        typ, encoding = guess_type(path)
+        return encoding is None and typ in (None, "text/yaml", "application/x-yaml")
 
 
 class YamlManager:
     is_first = False
     reader_cls = YamlReader
-    db_directory = "db"
-    patchs_directory = "patchs"
+    output_directory = "db"
+    input_directory = "patchs"
     _data = None
 
     def __init__(self, **kwargs):
@@ -110,7 +98,7 @@ class YamlManager:
         file_content = ""
         reader = self.reader_cls()
         for path in paths:
-            patch_path = self.patchs_directory + "/" + path
+            patch_path = self.input_directory + "/" + path
             if not os.path.exists(patch_path):
                 print(f"{patch_path} not found.")
                 continue
@@ -136,7 +124,11 @@ class YamlManager:
     def dump_yaml(self, filename, **kwargs) -> None:
         with open(self.output_basename(filename), "w") as file:
             # hack pour convertir l'objet en dictionnaire
-            yaml.dump(json.loads(json.dumps(self.data)), file, **kwargs)
+            yaml.dump(
+                json.loads(json.dumps(self.data)),
+                file,
+                **kwargs,
+            )
 
     def output_basename(self, filename: str) -> str:
-        return os.path.join(BASE_DIR, self.db_directory, filename)
+        return os.path.join(BASE_DIR, self.output_directory, filename)
