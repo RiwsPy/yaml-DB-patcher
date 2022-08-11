@@ -136,3 +136,20 @@ def test_apply_operator():
 
     # __sub__ n'existe pas pour le type list
     # assert dyct.apply_operator(["SCRL01", "POTN01"], ["POTN01"], "-") == ["SCRL01"]
+
+
+def test_remove_relative_import(dyct):
+    expected_value = "0.attr"
+    assert dyct.remove_relative_import("0.fake..attr") == expected_value
+
+
+def test_remove_relative_import_non_complete(dyct):
+    expected_value = "0.attr"
+    assert dyct.remove_relative_import("..0.fake..attr") == expected_value
+
+
+def test_relative_path(dyct):
+    dyct.update({"0": {"attr": 12, "fake": 11}, "1": "<<0.fake..attr>>"})
+    dyct.resolve_links()
+    expected_value = 12
+    assert dyct["1"] == expected_value

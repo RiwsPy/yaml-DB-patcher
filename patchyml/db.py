@@ -88,6 +88,7 @@ class Dyct(dict, metaclass=OutputOfMyClass):
             return super().__getitem__(key)
 
         sub_dict = self
+        key = self.remove_relative_import(key)
         for attr in key.split(self.attr_split_string):
             sub_dict = sub_dict[attr]
         return sub_dict
@@ -98,6 +99,7 @@ class Dyct(dict, metaclass=OutputOfMyClass):
         self["a.b"] = 2 <==> {"a": {"b": 2}}
         """
         sub_dict = self
+        key = self.remove_relative_import(key)
         attrs = key.split(self.attr_split_string)
 
         for attr in attrs[:-1]:
@@ -109,6 +111,24 @@ class Dyct(dict, metaclass=OutputOfMyClass):
                 super().__setitem__(key, value)
             else:
                 sub_dict[attrs[-1]] = value
+
+    def remove_relative_import(self, path: str) -> str:
+        """
+        Permet de convertir partiellement des chemins relatifs
+        En théorie, un dictionnaire ne connait pas sa position dans le dictionnaire imbriqué
+        Aussi, en partant de ce constat, les possibilités sont actuellement limitées
+        Néanmoins, il est intéressant de le coupler avec le signe $
+        """
+        path_without_relative_import = list()
+        for attr in path.split(self.attr_split_string):
+            if attr:
+                path_without_relative_import.append(attr)
+            else:
+                try:
+                    del path_without_relative_import[-1]
+                except IndexError:
+                    pass
+        return self.attr_split_string.join(path_without_relative_import)
 
     def update(self, *others: dict) -> None:
         # TODO: faire le niveau2: application des fixs et des héritages
@@ -175,13 +195,11 @@ class Dyct(dict, metaclass=OutputOfMyClass):
 
             self[k] = value_expended
 
-        """
         for k, v in self.items():
             if isinstance(v, dict):
                 dict_convert = self.__class__(v)
                 dict_convert.extends()
                 self[k] = dict_convert
-        """
 
     def key_disaggregation(self) -> None:
         """
