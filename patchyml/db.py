@@ -11,6 +11,7 @@ class StrModel(str, metaclass=OutputOfMyClass):
     path_string = "$"
     regex_links = re.compile(r"(<<([\w\. ]+)>>)")
     regex_yaml_extension = re.compile(r".[yY][aA]?[mM][lL]$")
+    patchpath_regex = re.compile(r"(\$\.+)")
 
     def replace_links(self, dyct) -> Any:
         ret = self
@@ -28,8 +29,11 @@ class StrModel(str, metaclass=OutputOfMyClass):
             if new_v is None:
                 new_v = ""
             elif isinstance(new_v, str):
+                if not isinstance(new_v, self.__class__):
+                    new_v = self.__class__(new_v)
+
                 # application de replace_links sur le résultat trouvé
-                new_v = self.__class__(new_v).replace_links(dyct)
+                new_v = new_v.replace_links(dyct)
                 # sauvegarde dans dyct pour éviter de répéter la procédure
                 dyct[strref_id] = new_v
             elif self.regex_links.fullmatch(self):
@@ -57,10 +61,19 @@ class StrModel(str, metaclass=OutputOfMyClass):
         return ret
 
     def replace_path_string(self, patchpath: str) -> "StrModel":
-        def remove_yaml_extension(text: str) -> str:
-            return self.regex_yaml_extension.sub("", text)
+        pp = self.regex_yaml_extension.sub("", patchpath)
+        pp_splitted = pp.split(".")
+        len_pp_splitted = len(pp_splitted)
+        self_splitted = self.patchpath_regex.split(self)
+        # replace $ with .
+        for index, txt in enumerate(self_splitted[1::2]):
+            pp_splitted_restr = pp_splitted[: -min(len_pp_splitted, txt.count("."))]
+            new_txt = ".".join(pp_splitted_restr)
+            self_splitted[index * 2 + 1] = new_txt + "."
 
-        return self.replace(self.path_string, f"{remove_yaml_extension(patchpath)}.")
+        # replace $ without .
+        ret = "".join(self_splitted)
+        return ret.replace(self.path_string, pp + ".")
 
 
 class Dyct(dict, metaclass=OutputOfMyClass):
@@ -79,6 +92,9 @@ class Dyct(dict, metaclass=OutputOfMyClass):
     # captation de l'attribut is_first
     def __init__(self, *args, is_first=False, **kwargs):
         super().__init__(*args, **kwargs)
+
+    def __getattr__(self, attr):
+        return self[attr]
 
     @key_is_str
     # le yaml étant plus permissif que le json, les clés sont converties en str
@@ -175,12 +191,12 @@ class Dyct(dict, metaclass=OutputOfMyClass):
 
                         # héritage multiple <: cls1 cls2 cls3
                         inherited_entities = self.regex_inherit_split.split(value)
-                        for index, entity in enumerate(inherited_entities):
-                            # on passe les héritages vides (espaces)
-                            # seule la dernière instance des héritages identiques est prise en compte
-                            if not entity or entity in inherited_entities[index + 1 :]:
-                                continue
-
+                        # seule la dernière instance des héritages identiques est prise en compte
+                        inherited_entities = dict.fromkeys(inherited_entities[::-1])
+                        # on retire les héritages vides (espaces)
+                        inherited_entities.pop("", None)
+                        # on retrouve la liste dans l'ordre d'origine
+                        for entity in list(inherited_entities):
                             value_expansion = self._first_instance.get(entity, dict())
                             if isinstance(value_expansion, dict):
                                 value_expended.update(value_expansion)
@@ -318,6 +334,6 @@ def apply_operator(source: Any, value: Any, ope: str) -> Any:
             )
         except TypeError:
             print(f"fix non appliqué: type incorrect {type(source)}, {type(value)}")
-        except:
+        except Exception:
             print(f"Erreur inconnue: {source} {ope} {value}")
     return source if source else value
